@@ -51,6 +51,10 @@
   overflow: hidden;
 }
 
+.codex-pet-panel[hidden] {
+  display: none !important;
+}
+
 .codex-pet-panel-header {
   display: flex;
   align-items: center;

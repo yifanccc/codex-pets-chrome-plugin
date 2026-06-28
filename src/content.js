@@ -81,6 +81,7 @@
   const resultContent = shadow.querySelector(".codex-pet-result-content");
 
   document.documentElement.appendChild(host);
+  setPanelOpen(false);
   moveTo(x, y);
   loadSettings();
   scheduleNextFrame();
@@ -143,7 +144,7 @@
       return;
     }
     panelOpen = !panelOpen;
-    panel.hidden = !panelOpen;
+    setPanelOpen(panelOpen);
     if (panelOpen) {
       setState("waving");
     }
@@ -263,10 +264,9 @@
 
   function applyVisibility() {
     const visible = settings.petEnabled !== false;
-    host.hidden = !visible;
+    setHostVisible(visible);
     if (!visible) {
-      panelOpen = false;
-      panel.hidden = true;
+      setPanelOpen(false);
       window.clearTimeout(animationTimer);
     } else {
       scheduleNextFrame();
@@ -342,9 +342,19 @@
   }
 
   function closePanel() {
-    panelOpen = false;
-    panel.hidden = true;
+    setPanelOpen(false);
     setState("idle");
+  }
+
+  function setPanelOpen(open) {
+    panelOpen = Boolean(open);
+    panel.hidden = !panelOpen;
+    panel.style.display = panelOpen ? "flex" : "none";
+  }
+
+  function setHostVisible(visible) {
+    host.hidden = !visible;
+    host.style.display = visible ? "block" : "none";
   }
 
   function moveTo(nextX, nextY) {
