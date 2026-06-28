@@ -28,6 +28,7 @@
   let dragOffsetX = 0;
   let dragOffsetY = 0;
   let lastX = x;
+  let dragState = "";
   let panelOpen = false;
   let animationTimer = 0;
 
@@ -41,7 +42,7 @@
           <strong>Codex Pet</strong>
           <span>页面助手</span>
         </div>
-        <button type="button" data-action="close-pet" title="关闭桌宠" class="codex-pet-close">×</button>
+        <button type="button" data-action="close-pet" title="关闭弹窗" class="codex-pet-close">×</button>
       </div>
       <div class="codex-pet-actions">
         <button type="button" data-action="translate"><span>译</span><strong>翻译</strong><small>转成中文</small></button>
@@ -88,6 +89,7 @@
     dragOffsetX = event.clientX - x;
     dragOffsetY = event.clientY - y;
     lastX = x;
+    dragState = "";
     sprite.setPointerCapture(event.pointerId);
   });
 
@@ -98,7 +100,11 @@
     if (Math.abs(nextX - x) > 2 || Math.abs(nextY - y) > 2) {
       movedDuringDrag = true;
     }
-    setState(nextX >= lastX ? "running-right" : "running-left");
+    const nextState = nextX >= lastX ? "running-right" : "running-left";
+    if (nextState !== dragState) {
+      dragState = nextState;
+      setState(nextState);
+    }
     lastX = nextX;
     moveTo(nextX, nextY);
   });
@@ -108,6 +114,7 @@
       return;
     }
     dragging = false;
+    dragState = "";
     sprite.releasePointerCapture(event.pointerId);
     setState("idle");
   });
@@ -130,8 +137,9 @@
     const action = button.dataset.action;
 
     if (action === "close-pet") {
-      await send({ type: "SET_ENABLED", enabled: false });
-      window.clearTimeout(animationTimer);
+      panelOpen = false;
+      panel.hidden = true;
+      setState("idle");
       return;
     }
 
@@ -165,8 +173,8 @@
     try {
       setBusy("处理中...");
       if (action === "translate") {
-        await send({ type: "TRANSLATE", text: getSelectedOrPageText() });
-        setResult("已打开 Google 翻译。");
+        const response = await send({ type: "TRANSLATE", text: getSelectedOrPageText() });
+        setResult(response.translatedText);
       }
 
       if (action === "send-chat") {
@@ -181,7 +189,12 @@
       if (action === "summon") {
         const prompt = `请阅读这个页面并继续对话：\n标题：${document.title}\n链接：${location.href}`;
         await writeClipboard(prompt);
-        setResult("已复制到剪贴板，可粘贴到 Codex。");
+        try {
+          await send({ type: "SUMMON_CODEX" });
+        } catch (error) {
+          window.location.href = "codex://";
+        }
+        setResult("已复制页面提示词，并尝试唤起 Codex。");
       }
 
       if (action === "remember") {

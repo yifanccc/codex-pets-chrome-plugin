@@ -5,6 +5,8 @@ import {
   buildMemoryPrompt,
   buildMemoryMarkdown,
   buildChatEndpoint,
+  buildCodexLaunchUrl,
+  buildGoogleTranslateUrl,
   ensureJsonResponse,
   getNextPetFrame,
   getPetAnimation,
@@ -13,6 +15,8 @@ import {
   extractPageText,
   parseMemoryResponse,
   sanitizeFileTitle,
+  shouldRetryHttpStatus,
+  parseGoogleTranslateResponse,
   truncateForModel,
   upsertById
 } from "../src/shared/core.js";
@@ -125,6 +129,32 @@ test("buildChatEndpoint accepts base URLs and full chat completion URLs", () => 
     buildChatEndpoint("https://api.example.com/v1/chat/completions"),
     "https://api.example.com/v1/chat/completions"
   );
+});
+
+test("shouldRetryHttpStatus retries transient upstream model failures", () => {
+  assert.equal(shouldRetryHttpStatus(502), true);
+  assert.equal(shouldRetryHttpStatus(503), true);
+  assert.equal(shouldRetryHttpStatus(429), true);
+  assert.equal(shouldRetryHttpStatus(401), false);
+  assert.equal(shouldRetryHttpStatus(400), false);
+});
+
+test("buildCodexLaunchUrl uses the installed app scheme without guessing unsupported params", () => {
+  assert.equal(buildCodexLaunchUrl(), "codex://");
+});
+
+test("buildGoogleTranslateUrl targets Chinese inline translation", () => {
+  const url = buildGoogleTranslateUrl("hello world");
+
+  assert.match(url, /^https:\/\/translate\.googleapis\.com\/translate_a\/single\?/);
+  assert.match(url, /tl=zh-CN/);
+  assert.match(url, /q=hello\+world|q=hello%20world/);
+});
+
+test("parseGoogleTranslateResponse combines translated segments", () => {
+  const response = [[["你好", "hello"], ["世界", "world"]], null, "en"];
+
+  assert.equal(parseGoogleTranslateResponse(response), "你好世界");
 });
 
 test("ensureJsonResponse rejects HTML model responses with a clear configuration hint", () => {

@@ -152,6 +152,42 @@ export function buildChatEndpoint(baseUrl) {
   return `${trimmed}/chat/completions`;
 }
 
+export function shouldRetryHttpStatus(status) {
+  return [408, 429, 500, 502, 503, 504].includes(Number(status));
+}
+
+export function buildCodexLaunchUrl() {
+  return "codex://";
+}
+
+export function buildGoogleTranslateUrl(text) {
+  const params = new URLSearchParams({
+    client: "gtx",
+    sl: "auto",
+    tl: "zh-CN",
+    dt: "t",
+    q: String(text || "")
+  });
+  return `https://translate.googleapis.com/translate_a/single?${params.toString()}`;
+}
+
+export function parseGoogleTranslateResponse(data) {
+  if (!Array.isArray(data?.[0])) {
+    throw new Error("Google 翻译响应格式不正确。");
+  }
+
+  const translated = data[0]
+    .map((segment) => (Array.isArray(segment) ? segment[0] : ""))
+    .filter(Boolean)
+    .join("");
+
+  if (!translated.trim()) {
+    throw new Error("Google 翻译没有返回结果。");
+  }
+
+  return translated;
+}
+
 export function ensureJsonResponse(contentType, bodyText) {
   const normalized = String(contentType || "").toLowerCase();
   if (normalized.includes("application/json")) {

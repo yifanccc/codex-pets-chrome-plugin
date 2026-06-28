@@ -1,10 +1,14 @@
 import {
   buildChatEndpoint,
+  buildCodexLaunchUrl,
+  buildGoogleTranslateUrl,
   buildMemoryMarkdown,
   buildMemoryPrompt,
   ensureJsonResponse,
+  parseGoogleTranslateResponse,
   parseMemoryResponse,
   sanitizeFileTitle,
+  shouldRetryHttpStatus,
   truncateForModel
 } from "./shared/core.js";
 
@@ -62,8 +66,12 @@ async function handleMessage(message) {
 
   if (message.type === "TRANSLATE") {
     const text = truncateForModel(message.text || "", 4000);
-    const url = `https://translate.google.com/?sl=auto&tl=zh-CN&text=${encodeURIComponent(text)}&op=translate`;
-    await chrome.tabs.create({ url });
+    const translatedText = await translateToChinese(text);
+    return { ok: true, translatedText };
+  }
+
+  if (message.type === "SUMMON_CODEX") {
+    await chrome.tabs.create({ url: buildCodexLaunchUrl() });
     return { ok: true };
   }
 
@@ -163,7 +171,7 @@ async function rememberPage(settings, page = {}) {
 
 async function callChatCompletions(modelConfig, messages) {
   const endpoint = buildChatEndpoint(modelConfig.baseUrl);
-  const response = await fetch(endpoint, {
+  const response = await fetchWithRetry(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -178,6 +186,9 @@ async function callChatCompletions(modelConfig, messages) {
 
   if (!response.ok) {
     const text = await response.text();
+    if (shouldRetryHttpStatus(response.status)) {
+      throw new Error(`大模型上游服务暂时失败，已自动重试后仍失败: ${response.status} ${text.slice(0, 300)}`);
+    }
     throw new Error(`大模型请求失败: ${response.status} ${text.slice(0, 300)}`);
   }
 
@@ -196,4 +207,44 @@ async function callChatCompletions(modelConfig, messages) {
     throw new Error("大模型响应缺少 choices[0].message.content。");
   }
   return content;
+}
+
+async function translateToChinese(text) {
+  if (!String(text || "").trim()) {
+    throw new Error("没有可翻译的文本。");
+  }
+
+  const response = await fetch(buildGoogleTranslateUrl(text));
+  const bodyText = await response.text();
+  if (!response.ok) {
+    throw new Error(`Google 翻译请求失败: ${response.status} ${bodyText.slice(0, 200)}`);
+  }
+
+  let data;
+  try {
+    data = JSON.parse(bodyText);
+  } catch (error) {
+    throw new Error(`Google 翻译响应不是合法 JSON: ${error.message}`);
+  }
+
+  return parseGoogleTranslateResponse(data);
+}
+
+async function fetchWithRetry(url, options, retries = 2) {
+  let lastResponse;
+  for (let attempt = 0; attempt <= retries; attempt += 1) {
+    const response = await fetch(url, options);
+    if (!shouldRetryHttpStatus(response.status) || attempt === retries) {
+      return response;
+    }
+
+    lastResponse = response;
+    await wait(350 * (attempt + 1));
+  }
+
+  return lastResponse;
+}
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
