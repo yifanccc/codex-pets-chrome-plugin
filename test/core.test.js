@@ -13,7 +13,8 @@ import {
   extractPageText,
   parseMemoryResponse,
   sanitizeFileTitle,
-  truncateForModel
+  truncateForModel,
+  upsertById
 } from "../src/shared/core.js";
 
 test("truncateForModel limits text to 10000 characters with an omission note", () => {
@@ -141,4 +142,19 @@ test("getPetMetrics scales the visible pet and atlas background together", () =>
     atlasHeight: 1170,
     scale: 1.25
   });
+});
+
+test("upsertById replaces an existing item instead of appending a duplicate", () => {
+  const result = upsertById(
+    [
+      { id: "a", name: "旧模型" },
+      { id: "b", name: "其他模型" }
+    ],
+    { id: "a", name: "新模型" }
+  );
+
+  assert.deepEqual(result, [
+    { id: "a", name: "新模型" },
+    { id: "b", name: "其他模型" }
+  ]);
 });

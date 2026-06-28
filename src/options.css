@@ -163,13 +163,13 @@ button.secondary {
 .import-row,
 .grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto auto;
   gap: 10px;
   align-items: end;
 }
 
 .grid {
-  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto auto;
 }
 
 .field {
@@ -253,6 +253,11 @@ button.secondary {
   border: 1px solid rgba(217, 225, 238, 0.92);
   border-radius: 6px;
   background: #fbfcff;
+}
+
+.item-actions {
+  display: flex;
+  gap: 8px;
 }
 
 #status {

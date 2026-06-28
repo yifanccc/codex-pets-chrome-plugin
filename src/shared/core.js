@@ -186,3 +186,16 @@ export function getPetMetrics(scale = 1) {
     scale: normalizedScale
   };
 }
+
+export function upsertById(items, nextItem) {
+  const list = Array.isArray(items) ? items : [];
+  if (!nextItem?.id) {
+    return [...list];
+  }
+
+  if (!list.some((item) => item.id === nextItem.id)) {
+    return [...list, nextItem];
+  }
+
+  return list.map((item) => (item.id === nextItem.id ? nextItem : item));
+}

@@ -1,4 +1,4 @@
-import { getPetAnimation, getPetMetrics, normalizePetScale } from "./shared/core.js";
+import { getPetAnimation, getPetMetrics, normalizePetScale, upsertById } from "./shared/core.js";
 
 const DEFAULTS = {
   pets: [],
@@ -12,10 +12,15 @@ const DEFAULTS = {
 
 let settings = { ...DEFAULTS };
 let previewFrame = 0;
+let editingPetId = "";
+let editingModelId = "";
 
+const petNameInput = document.querySelector("#pet-name");
+const petDescriptionInput = document.querySelector("#pet-description");
 const petJsonInput = document.querySelector("#pet-json");
 const petSheetInput = document.querySelector("#pet-sheet");
 const addPetButton = document.querySelector("#add-pet");
+const cancelPetEditButton = document.querySelector("#cancel-pet-edit");
 const petSelect = document.querySelector("#pet-select");
 const petList = document.querySelector("#pet-list");
 const previewSprite = document.querySelector("#preview-sprite");
@@ -23,6 +28,8 @@ const petEnabled = document.querySelector("#pet-enabled");
 const petScale = document.querySelector("#pet-scale");
 const scaleLabel = document.querySelector("#scale-label");
 const modelForm = document.querySelector("#model-form");
+const modelSubmitButton = document.querySelector("#model-submit");
+const cancelModelEditButton = document.querySelector("#cancel-model-edit");
 const modelSelect = document.querySelector("#model-select");
 const modelList = document.querySelector("#model-list");
 const kbFolder = document.querySelector("#kb-folder");
@@ -34,28 +41,35 @@ window.setInterval(renderPreview, 160);
 addPetButton.addEventListener("click", async () => {
   const jsonFile = petJsonInput.files[0];
   const sheetFile = petSheetInput.files[0];
-  if (!jsonFile || !sheetFile) {
+  const wasEditing = Boolean(editingPetId);
+  const existingPet = settings.pets.find((item) => item.id === editingPetId);
+
+  if (!editingPetId && (!jsonFile || !sheetFile)) {
     setStatus("请选择 pet.json 和 spritesheet.webp。");
     return;
   }
 
-  const petJson = JSON.parse(await jsonFile.text());
-  const spritesheetDataUrl = await readAsDataUrl(sheetFile);
-  const id = petJson.id || crypto.randomUUID();
+  const petJson = jsonFile ? JSON.parse(await jsonFile.text()) : existingPet.petJson;
+  const spritesheetDataUrl = sheetFile ? await readAsDataUrl(sheetFile) : existingPet.spritesheetDataUrl;
+  const id = editingPetId || petJson.id || crypto.randomUUID();
   const pet = {
     id,
-    displayName: petJson.displayName || id,
-    description: petJson.description || "",
+    displayName: petNameInput.value.trim() || petJson.displayName || id,
+    description: petDescriptionInput.value.trim() || petJson.description || "",
     petJson,
     spritesheetDataUrl
   };
 
-  settings.pets = [...settings.pets.filter((item) => item.id !== id), pet];
+  settings.pets = upsertById(settings.pets, pet);
   settings.currentPetId = id;
   await save();
-  petJsonInput.value = "";
-  petSheetInput.value = "";
-  setStatus(`已添加宠物：${pet.displayName}`);
+  resetPetForm();
+  setStatus(`${wasEditing ? "已更新" : "已添加"}宠物：${pet.displayName}`);
+});
+
+cancelPetEditButton.addEventListener("click", () => {
+  resetPetForm();
+  setStatus("已取消宠物编辑。");
 });
 
 petSelect.addEventListener("change", async () => {
@@ -83,12 +97,14 @@ petScale.addEventListener("change", async () => {
 modelForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const form = new FormData(modelForm);
+  const wasEditing = Boolean(editingModelId);
+  const existingModel = settings.models.find((item) => item.id === editingModelId);
   const model = {
-    id: crypto.randomUUID(),
+    id: editingModelId || crypto.randomUUID(),
     name: String(form.get("name") || "").trim(),
     baseUrl: String(form.get("baseUrl") || "").trim(),
     model: String(form.get("model") || "").trim(),
-    apiKey: String(form.get("apiKey") || "").trim()
+    apiKey: String(form.get("apiKey") || "").trim() || existingModel?.apiKey || ""
   };
 
   if (!model.name || !model.baseUrl || !model.model || !model.apiKey) {
@@ -96,11 +112,16 @@ modelForm.addEventListener("submit", async (event) => {
     return;
   }
 
-  settings.models = [...settings.models, model];
+  settings.models = upsertById(settings.models, model);
   settings.currentModelId = model.id;
-  modelForm.reset();
   await save();
-  setStatus(`已添加模型：${model.name}`);
+  resetModelForm();
+  setStatus(`${wasEditing ? "已更新" : "已添加"}模型：${model.name}`);
+});
+
+cancelModelEditButton.addEventListener("click", () => {
+  resetModelForm();
+  setStatus("已取消模型编辑。");
 });
 
 modelSelect.addEventListener("change", async () => {
@@ -115,21 +136,39 @@ kbFolder.addEventListener("change", async () => {
 });
 
 petList.addEventListener("click", async (event) => {
+  const editId = event.target.dataset.editPet;
+  if (editId) {
+    startPetEdit(editId);
+    return;
+  }
+
   const id = event.target.dataset.removePet;
   if (!id) return;
   settings.pets = settings.pets.filter((item) => item.id !== id);
   if (settings.currentPetId === id) {
     settings.currentPetId = settings.pets[0]?.id || "";
   }
+  if (editingPetId === id) {
+    resetPetForm();
+  }
   await save();
 });
 
 modelList.addEventListener("click", async (event) => {
+  const editId = event.target.dataset.editModel;
+  if (editId) {
+    startModelEdit(editId);
+    return;
+  }
+
   const id = event.target.dataset.removeModel;
   if (!id) return;
   settings.models = settings.models.filter((item) => item.id !== id);
   if (settings.currentModelId === id) {
     settings.currentModelId = settings.models[0]?.id || "";
+  }
+  if (editingModelId === id) {
+    resetModelForm();
   }
   await save();
 });
@@ -164,12 +203,18 @@ function renderPetControls() {
   }
 
   petList.innerHTML = settings.pets
-    .map((pet) => `
+    .map((pet) => {
+      const id = escapeHtml(pet.id);
+      return `
       <div class="item">
         <span>${escapeHtml(pet.displayName)}</span>
-        <button class="secondary" type="button" data-remove-pet="${pet.id}">删除</button>
+        <div class="item-actions">
+          <button class="secondary" type="button" data-edit-pet="${id}">编辑</button>
+          <button class="secondary" type="button" data-remove-pet="${id}">删除</button>
+        </div>
       </div>
-    `)
+    `;
+    })
     .join("");
 }
 
@@ -183,12 +228,18 @@ function renderModelControls() {
   }
 
   modelList.innerHTML = settings.models
-    .map((model) => `
+    .map((model) => {
+      const id = escapeHtml(model.id);
+      return `
       <div class="item">
         <span>${escapeHtml(model.name)} · ${escapeHtml(model.model)}</span>
-        <button class="secondary" type="button" data-remove-model="${model.id}">删除</button>
+        <div class="item-actions">
+          <button class="secondary" type="button" data-edit-model="${id}">编辑</button>
+          <button class="secondary" type="button" data-remove-model="${id}">删除</button>
+        </div>
       </div>
-    `)
+    `;
+    })
     .join("");
 }
 
@@ -218,6 +269,51 @@ function readAsDataUrl(file) {
     reader.addEventListener("error", () => reject(reader.error));
     reader.readAsDataURL(file);
   });
+}
+
+function startPetEdit(id) {
+  const pet = settings.pets.find((item) => item.id === id);
+  if (!pet) return;
+  editingPetId = id;
+  petNameInput.value = pet.displayName || "";
+  petDescriptionInput.value = pet.description || "";
+  petJsonInput.value = "";
+  petSheetInput.value = "";
+  addPetButton.textContent = "保存宠物";
+  cancelPetEditButton.hidden = false;
+  setStatus(`正在编辑宠物：${pet.displayName}`);
+}
+
+function resetPetForm() {
+  editingPetId = "";
+  petNameInput.value = "";
+  petDescriptionInput.value = "";
+  petJsonInput.value = "";
+  petSheetInput.value = "";
+  addPetButton.textContent = "添加宠物";
+  cancelPetEditButton.hidden = true;
+}
+
+function startModelEdit(id) {
+  const model = settings.models.find((item) => item.id === id);
+  if (!model) return;
+  editingModelId = id;
+  modelForm.elements.name.value = model.name || "";
+  modelForm.elements.baseUrl.value = model.baseUrl || "";
+  modelForm.elements.model.value = model.model || "";
+  modelForm.elements.apiKey.value = "";
+  modelForm.elements.apiKey.placeholder = "API key，留空则保持原 key";
+  modelSubmitButton.textContent = "保存模型";
+  cancelModelEditButton.hidden = false;
+  setStatus(`正在编辑模型：${model.name}`);
+}
+
+function resetModelForm() {
+  editingModelId = "";
+  modelForm.reset();
+  modelForm.elements.apiKey.placeholder = "API key";
+  modelSubmitButton.textContent = "添加模型";
+  cancelModelEditButton.hidden = true;
 }
 
 function setStatus(text) {

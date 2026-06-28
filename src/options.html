@@ -45,9 +45,12 @@
               <span>Codex pet.json + spritesheet.webp</span>
             </div>
             <div class="import-row">
+              <input id="pet-name" placeholder="宠物名称，可选">
+              <input id="pet-description" placeholder="描述，可选">
               <label>pet.json <input id="pet-json" type="file" accept="application/json,.json"></label>
               <label>spritesheet.webp <input id="pet-sheet" type="file" accept="image/webp"></label>
               <button id="add-pet" class="primary-action" type="button">添加宠物</button>
+              <button id="cancel-pet-edit" class="secondary" type="button" hidden>取消编辑</button>
             </div>
             <div id="pet-list" class="list"></div>
           </section>
@@ -62,7 +65,8 @@
               <input name="baseUrl" placeholder="Base URL，例如 https://api.openai.com/v1">
               <input name="model" placeholder="Model，例如 gpt-4.1-mini">
               <input name="apiKey" placeholder="API key" type="password">
-              <button class="primary-action" type="submit">添加模型</button>
+              <button id="model-submit" class="primary-action" type="submit">添加模型</button>
+              <button id="cancel-model-edit" class="secondary" type="button" hidden>取消编辑</button>
             </form>
             <label class="field compact select-line">
               当前模型
