@@ -22,8 +22,8 @@ load();
 
 toggleEnabled.addEventListener("click", async () => {
   settings.petEnabled = settings.petEnabled === false;
-  await save();
   await chrome.runtime.sendMessage({ type: "SET_ENABLED", enabled: settings.petEnabled });
+  render();
   setStatus(settings.petEnabled ? "桌宠已全局打开。" : "桌宠已全局关闭。");
 });
 

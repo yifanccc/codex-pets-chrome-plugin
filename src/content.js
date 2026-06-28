@@ -99,6 +99,19 @@
     }
   });
 
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message?.type !== "PET_VISIBILITY_CHANGED") {
+      return;
+    }
+
+    settings.petEnabled = Boolean(message.enabled);
+    applyVisibility();
+    if (settings.petEnabled !== false) {
+      renderSprite();
+      scheduleNextFrame();
+    }
+  });
+
   sprite.addEventListener("pointerdown", (event) => {
     dragging = true;
     movedDuringDrag = false;
@@ -269,6 +282,7 @@
       setPanelOpen(false);
       window.clearTimeout(animationTimer);
     } else {
+      renderSprite();
       scheduleNextFrame();
     }
   }
@@ -283,6 +297,7 @@
     sprite.style.width = `${frameWidth}px`;
     sprite.style.height = `${frameHeight}px`;
     sprite.style.backgroundSize = `${metrics.atlasWidth}px ${metrics.atlasHeight}px`;
+    panel.style.bottom = `${frameHeight + 18}px`;
 
     if (currentPet?.spritesheetDataUrl) {
       if (activeSpritesheetDataUrl !== currentPet.spritesheetDataUrl) {
@@ -350,6 +365,9 @@
     panelOpen = Boolean(open);
     panel.hidden = !panelOpen;
     panel.style.display = panelOpen ? "flex" : "none";
+    if (panelOpen) {
+      result.hidden = !resultContent.textContent && !resultContent.innerHTML;
+    }
   }
 
   function setHostVisible(visible) {
@@ -406,7 +424,7 @@
 
   function scheduleNextFrame() {
     window.clearTimeout(animationTimer);
-    if (settings.petEnabled === false) {
+    if (settings.petEnabled === false || host.style.display === "none") {
       return;
     }
 

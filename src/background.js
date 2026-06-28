@@ -53,8 +53,10 @@ async function handleMessage(message) {
   }
 
   if (message.type === "SET_ENABLED") {
-    await chrome.storage.local.set({ petEnabled: Boolean(message.enabled) });
-    await updateActionState(Boolean(message.enabled));
+    const enabled = Boolean(message.enabled);
+    await chrome.storage.local.set({ petEnabled: enabled });
+    await updateActionState(enabled);
+    await notifyPetVisibility(enabled);
     return { ok: true };
   }
 
@@ -102,6 +104,23 @@ async function updateActionState(enabled) {
   await chrome.action.setTitle({ title: enabled ? "Codex Pets：已打开" : "Codex Pets：已关闭" });
   await chrome.action.setBadgeText({ text: enabled ? "ON" : "OFF" });
   await chrome.action.setBadgeBackgroundColor({ color: enabled ? "#3157ff" : "#697386" });
+}
+
+async function notifyPetVisibility(enabled) {
+  const tabs = await chrome.tabs.query({});
+  await Promise.all(
+    tabs.map(async (tab) => {
+      if (!tab.id) return;
+      try {
+        await chrome.tabs.sendMessage(tab.id, {
+          type: "PET_VISIBILITY_CHANGED",
+          enabled
+        });
+      } catch (error) {
+        // Some pages do not run extension content scripts.
+      }
+    })
+  );
 }
 
 function getCurrentModel(settings) {
