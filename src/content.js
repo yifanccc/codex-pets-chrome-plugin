@@ -40,7 +40,7 @@
       <div class="codex-pet-panel-header">
         <div>
           <strong>Codex Pet</strong>
-          <span>页面助手</span>
+          <span class="codex-pet-name">未选择宠物</span>
         </div>
         <button type="button" data-action="close-pet" title="关闭弹窗" class="codex-pet-close">×</button>
       </div>
@@ -61,6 +61,7 @@
 
   const sprite = root.querySelector(".codex-pet-sprite");
   const panel = root.querySelector(".codex-pet-panel");
+  const petName = root.querySelector(".codex-pet-name");
   const result = root.querySelector(".codex-pet-result");
   const chatBox = root.querySelector(".codex-pet-chat");
   const textarea = root.querySelector("textarea");
@@ -164,6 +165,7 @@
     petScale = normalizeScale(settings.petScale);
     applyVisibility();
     applyPetAppearance();
+    renderPetName();
     moveTo(clamp(x, 8, window.innerWidth - frameWidth - 8), clamp(y, 8, window.innerHeight - frameHeight - 8));
     renderSprite();
     scheduleNextFrame();
@@ -242,6 +244,10 @@
     const animation = getAnimation(state);
     const column = frame % animation.durations.length;
     sprite.style.backgroundPosition = `-${column * frameWidth}px -${animation.row * frameHeight}px`;
+  }
+
+  function renderPetName() {
+    petName.textContent = currentPet?.displayName || "未选择宠物";
   }
 
   function applyVisibility() {
