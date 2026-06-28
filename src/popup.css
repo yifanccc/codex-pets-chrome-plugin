@@ -74,21 +74,6 @@ h1 {
   background: white;
 }
 
-.power label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  color: var(--muted);
-  font-size: 13px;
-  font-weight: 750;
-}
-
-input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--green);
-}
-
 .field {
   color: var(--muted);
   font-size: 12px;

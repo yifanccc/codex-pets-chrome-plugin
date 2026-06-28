@@ -10,10 +10,8 @@ const DEFAULTS = {
 };
 
 let settings = { ...DEFAULTS };
-let draftEnabled = true;
 
-const enabled = document.querySelector("#enabled");
-const applyEnabled = document.querySelector("#apply-enabled");
+const toggleEnabled = document.querySelector("#toggle-enabled");
 const petSelect = document.querySelector("#pet-select");
 const modelSelect = document.querySelector("#model-select");
 const openOptions = document.querySelector("#open-options");
@@ -22,14 +20,8 @@ const status = document.querySelector("#status");
 
 load();
 
-enabled.addEventListener("change", () => {
-  draftEnabled = enabled.checked;
-  renderPower();
-  setStatus("已选择显示状态，点击按钮后生效。");
-});
-
-applyEnabled.addEventListener("click", async () => {
-  settings.petEnabled = draftEnabled;
+toggleEnabled.addEventListener("click", async () => {
+  settings.petEnabled = settings.petEnabled === false;
   await save();
   await chrome.runtime.sendMessage({ type: "SET_ENABLED", enabled: settings.petEnabled });
   setStatus(settings.petEnabled ? "桌宠已全局打开。" : "桌宠已全局关闭。");
@@ -63,17 +55,16 @@ async function save() {
 }
 
 function render() {
-  draftEnabled = settings.petEnabled !== false;
-  enabled.checked = draftEnabled;
   renderPower();
   renderSelect(petSelect, settings.pets, settings.currentPetId, "还没有导入宠物", "displayName");
   renderSelect(modelSelect, settings.models, settings.currentModelId, "还没有模型配置", "name");
 }
 
 function renderPower() {
-  applyEnabled.textContent = draftEnabled ? "打开桌宠" : "关闭桌宠";
-  statePill.textContent = settings.petEnabled !== false ? "ON" : "OFF";
-  statePill.classList.toggle("is-on", settings.petEnabled !== false);
+  const enabled = settings.petEnabled !== false;
+  toggleEnabled.textContent = enabled ? "关闭桌宠" : "打开桌宠";
+  statePill.textContent = enabled ? "ON" : "OFF";
+  statePill.classList.toggle("is-on", enabled);
 }
 
 function renderSelect(select, items, currentId, emptyLabel, labelKey) {

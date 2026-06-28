@@ -15,7 +15,6 @@ let settings = { ...DEFAULTS };
 let previewFrame = 0;
 let editingPetId = "";
 let editingModelId = "";
-let draftPetEnabled = true;
 
 const petJsonInput = document.querySelector("#pet-json");
 const petSheetInput = document.querySelector("#pet-sheet");
@@ -24,8 +23,8 @@ const cancelPetEditButton = document.querySelector("#cancel-pet-edit");
 const petSelect = document.querySelector("#pet-select");
 const petList = document.querySelector("#pet-list");
 const previewSprite = document.querySelector("#preview-sprite");
-const petEnabled = document.querySelector("#pet-enabled");
-const applyPetEnabledButton = document.querySelector("#apply-pet-enabled");
+const petEnabledState = document.querySelector("#pet-enabled-state");
+const togglePetEnabledButton = document.querySelector("#toggle-pet-enabled");
 const petScale = document.querySelector("#pet-scale");
 const scaleLabel = document.querySelector("#scale-label");
 const modelForm = document.querySelector("#model-form");
@@ -78,14 +77,8 @@ petSelect.addEventListener("change", async () => {
   await save();
 });
 
-petEnabled.addEventListener("change", async () => {
-  draftPetEnabled = petEnabled.checked;
-  renderPetEnabledButton();
-  setStatus("显示状态已选择，点击按钮后生效。");
-});
-
-applyPetEnabledButton.addEventListener("click", async () => {
-  settings.petEnabled = draftPetEnabled;
+togglePetEnabledButton.addEventListener("click", async () => {
+  settings.petEnabled = settings.petEnabled === false;
   await save();
   setStatus(settings.petEnabled ? "桌宠已全局打开。" : "桌宠已全局关闭。");
 });
@@ -192,8 +185,6 @@ async function save() {
 
 function render() {
   kbFolder.value = settings.knowledgeBaseFolder || DEFAULTS.knowledgeBaseFolder;
-  draftPetEnabled = settings.petEnabled !== false;
-  petEnabled.checked = draftPetEnabled;
   renderPetEnabledButton();
   petScale.value = String(Math.round(normalizePetScale(settings.petScale) * 100));
   scaleLabel.textContent = `${petScale.value}%`;
@@ -261,7 +252,10 @@ function renderModelControls() {
 }
 
 function renderPetEnabledButton() {
-  applyPetEnabledButton.textContent = draftPetEnabled ? "打开桌宠" : "关闭桌宠";
+  const enabled = settings.petEnabled !== false;
+  petEnabledState.textContent = enabled ? "ON" : "OFF";
+  petEnabledState.classList.toggle("is-off", !enabled);
+  togglePetEnabledButton.textContent = enabled ? "关闭桌宠" : "打开桌宠";
 }
 
 function renderPreview() {
