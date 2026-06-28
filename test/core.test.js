@@ -6,6 +6,8 @@ import {
   buildMemoryMarkdown,
   buildChatEndpoint,
   ensureJsonResponse,
+  getNextPetFrame,
+  getPetAnimation,
   getPetMetrics,
   getPetFrame,
   extractPageText,
@@ -93,6 +95,27 @@ test("getPetFrame maps Codex pet states to the expected atlas row and column", (
   assert.deepEqual(getPetFrame("running-right", 7), { row: 1, column: 7 });
   assert.deepEqual(getPetFrame("running-left", 9), { row: 2, column: 1 });
   assert.deepEqual(getPetFrame("failed", 3), { row: 5, column: 3 });
+});
+
+test("getPetFrame wraps states by their used columns instead of all 8 atlas columns", () => {
+  assert.deepEqual(getPetFrame("idle", 6), { row: 0, column: 0 });
+  assert.deepEqual(getPetFrame("waving", 4), { row: 3, column: 0 });
+  assert.deepEqual(getPetFrame("jumping", 5), { row: 4, column: 0 });
+  assert.deepEqual(getPetFrame("running", 6), { row: 7, column: 0 });
+});
+
+test("getPetAnimation exposes Codex row-specific frame durations", () => {
+  assert.deepEqual(getPetAnimation("waving"), {
+    row: 3,
+    frameCount: 4,
+    durations: [140, 140, 140, 280]
+  });
+});
+
+test("getNextPetFrame advances within each state's real frame count", () => {
+  assert.deepEqual(getNextPetFrame("idle", 5), { frame: 0, duration: 280 });
+  assert.deepEqual(getNextPetFrame("running-right", 7), { frame: 0, duration: 120 });
+  assert.deepEqual(getNextPetFrame("waving", 3), { frame: 0, duration: 140 });
 });
 
 test("buildChatEndpoint accepts base URLs and full chat completion URLs", () => {

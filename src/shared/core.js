@@ -12,6 +12,17 @@ export const PET_STATES = [
   "running",
   "review"
 ];
+export const PET_ANIMATIONS = {
+  idle: { row: 0, durations: [280, 110, 110, 140, 140, 320] },
+  "running-right": { row: 1, durations: [120, 120, 120, 120, 120, 120, 120, 220] },
+  "running-left": { row: 2, durations: [120, 120, 120, 120, 120, 120, 120, 220] },
+  waving: { row: 3, durations: [140, 140, 140, 280] },
+  jumping: { row: 4, durations: [140, 140, 140, 140, 280] },
+  failed: { row: 5, durations: [140, 140, 140, 140, 140, 140, 140, 240] },
+  waiting: { row: 6, durations: [150, 150, 150, 150, 150, 260] },
+  running: { row: 7, durations: [120, 120, 120, 120, 120, 220] },
+  review: { row: 8, durations: [150, 150, 150, 150, 150, 280] }
+};
 
 const TRUNCATION_NOTE = "\n\n[Content truncated for model input]";
 
@@ -106,9 +117,28 @@ export function extractPageText(documentLike = document) {
 }
 
 export function getPetFrame(state, frameIndex) {
-  const row = Math.max(0, PET_STATES.indexOf(state));
-  const column = Math.abs(Number(frameIndex) || 0) % 8;
+  const animation = getPetAnimation(state);
+  const row = animation.row;
+  const column = Math.abs(Number(frameIndex) || 0) % animation.frameCount;
   return { row, column };
+}
+
+export function getPetAnimation(state) {
+  const animation = PET_ANIMATIONS[state] || PET_ANIMATIONS.idle;
+  return {
+    row: animation.row,
+    frameCount: animation.durations.length,
+    durations: [...animation.durations]
+  };
+}
+
+export function getNextPetFrame(state, frameIndex) {
+  const animation = getPetAnimation(state);
+  const frame = (Math.abs(Number(frameIndex) || 0) + 1) % animation.frameCount;
+  return {
+    frame,
+    duration: animation.durations[frame]
+  };
 }
 
 export function buildChatEndpoint(baseUrl) {

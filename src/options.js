@@ -1,4 +1,4 @@
-import { getPetMetrics, normalizePetScale } from "./shared/core.js";
+import { getPetAnimation, getPetMetrics, normalizePetScale } from "./shared/core.js";
 
 const DEFAULTS = {
   pets: [],
@@ -208,7 +208,7 @@ function renderPreview() {
   previewSprite.textContent = "";
   previewSprite.style.backgroundImage = `url("${pet.spritesheetDataUrl}")`;
   previewSprite.style.backgroundPosition = `-${previewFrame * metrics.frameWidth}px 0`;
-  previewFrame = (previewFrame + 1) % 8;
+  previewFrame = (previewFrame + 1) % getPetAnimation("idle").frameCount;
 }
 
 function readAsDataUrl(file) {

@@ -1,17 +1,17 @@
 (function () {
   const BASE_FRAME_WIDTH = 96;
   const BASE_FRAME_HEIGHT = 104;
-  const STATES = [
-    "idle",
-    "running-right",
-    "running-left",
-    "waving",
-    "jumping",
-    "failed",
-    "waiting",
-    "running",
-    "review"
-  ];
+  const ANIMATIONS = {
+    idle: { row: 0, durations: [280, 110, 110, 140, 140, 320] },
+    "running-right": { row: 1, durations: [120, 120, 120, 120, 120, 120, 120, 220] },
+    "running-left": { row: 2, durations: [120, 120, 120, 120, 120, 120, 120, 220] },
+    waving: { row: 3, durations: [140, 140, 140, 280] },
+    jumping: { row: 4, durations: [140, 140, 140, 140, 280] },
+    failed: { row: 5, durations: [140, 140, 140, 140, 140, 140, 140, 240] },
+    waiting: { row: 6, durations: [150, 150, 150, 150, 150, 260] },
+    running: { row: 7, durations: [120, 120, 120, 120, 120, 220] },
+    review: { row: 8, durations: [150, 150, 150, 150, 150, 280] }
+  };
 
   let settings = {};
   let currentPet = null;
@@ -29,6 +29,7 @@
   let dragOffsetY = 0;
   let lastX = x;
   let panelOpen = false;
+  let animationTimer = 0;
 
   const root = document.createElement("div");
   root.id = "codex-pet-root";
@@ -66,12 +67,7 @@
   document.documentElement.appendChild(root);
   moveTo(x, y);
   loadSettings();
-
-  const timer = window.setInterval(() => {
-    if (settings.petEnabled === false) return;
-    frame = (frame + 1) % 8;
-    renderSprite();
-  }, 140);
+  scheduleNextFrame();
 
   window.addEventListener("load", () => setState("idle"), { once: true });
   window.addEventListener("error", () => setState("failed"), true);
@@ -135,6 +131,7 @@
 
     if (action === "close-pet") {
       await send({ type: "SET_ENABLED", enabled: false });
+      window.clearTimeout(animationTimer);
       return;
     }
 
@@ -161,6 +158,7 @@
     applyPetAppearance();
     moveTo(clamp(x, 8, window.innerWidth - frameWidth - 8), clamp(y, 8, window.innerHeight - frameHeight - 8));
     renderSprite();
+    scheduleNextFrame();
   }
 
   async function runAction(action) {
@@ -228,8 +226,9 @@
       return;
     }
     sprite.textContent = "";
-    const row = Math.max(0, STATES.indexOf(state));
-    sprite.style.backgroundPosition = `-${frame * frameWidth}px -${row * frameHeight}px`;
+    const animation = getAnimation(state);
+    const column = frame % animation.durations.length;
+    sprite.style.backgroundPosition = `-${column * frameWidth}px -${animation.row * frameHeight}px`;
   }
 
   function applyVisibility() {
@@ -238,6 +237,9 @@
     if (!visible) {
       panelOpen = false;
       panel.hidden = true;
+      window.clearTimeout(animationTimer);
+    } else {
+      scheduleNextFrame();
     }
   }
 
@@ -266,6 +268,7 @@
     state = nextState;
     frame = 0;
     renderSprite();
+    scheduleNextFrame();
   }
 
   function setBusy(text) {
@@ -305,6 +308,25 @@
       atlasWidth: nextFrameWidth * 8,
       atlasHeight: nextFrameHeight * 9
     };
+  }
+
+  function getAnimation(nextState) {
+    return ANIMATIONS[nextState] || ANIMATIONS.idle;
+  }
+
+  function scheduleNextFrame() {
+    window.clearTimeout(animationTimer);
+    if (settings.petEnabled === false) {
+      return;
+    }
+
+    const animation = getAnimation(state);
+    const duration = animation.durations[frame % animation.durations.length] || 140;
+    animationTimer = window.setTimeout(() => {
+      frame = (frame + 1) % animation.durations.length;
+      renderSprite();
+      scheduleNextFrame();
+    }, duration);
   }
 
   async function send(message) {
