@@ -32,9 +32,23 @@
   let panelOpen = false;
   let animationTimer = 0;
 
-  const root = document.createElement("div");
-  root.id = "codex-pet-root";
-  root.innerHTML = `
+  const host = document.createElement("div");
+  host.id = "codex-pet-host";
+  Object.assign(host.style, {
+    all: "initial",
+    position: "fixed",
+    zIndex: "2147483647",
+    left: "0",
+    top: "0",
+    width: `${BASE_FRAME_WIDTH}px`,
+    minHeight: `${BASE_FRAME_HEIGHT}px`,
+    pointerEvents: "none"
+  });
+
+  const shadow = host.attachShadow({ mode: "open" });
+  shadow.innerHTML = `
+    <link rel="stylesheet" href="${chrome.runtime.getURL("src/content.css")}">
+    <div id="codex-pet-root">
     <div class="codex-pet-sprite" title="Codex Pet"></div>
     <div class="codex-pet-panel" hidden>
       <div class="codex-pet-panel-header">
@@ -54,19 +68,24 @@
         <textarea placeholder="问问宠物这个页面的内容"></textarea>
         <button type="button" data-action="send-chat">发送</button>
       </div>
-      <div class="codex-pet-result" role="status"></div>
+      <div class="codex-pet-result" role="status" hidden>
+        <div class="codex-pet-result-content"></div>
+      </div>
       <button type="button" data-action="options" class="codex-pet-link">配置</button>
+    </div>
     </div>
   `;
 
-  const sprite = root.querySelector(".codex-pet-sprite");
-  const panel = root.querySelector(".codex-pet-panel");
-  const petName = root.querySelector(".codex-pet-name");
-  const result = root.querySelector(".codex-pet-result");
-  const chatBox = root.querySelector(".codex-pet-chat");
-  const textarea = root.querySelector("textarea");
+  const root = shadow.querySelector("#codex-pet-root");
+  const sprite = shadow.querySelector(".codex-pet-sprite");
+  const panel = shadow.querySelector(".codex-pet-panel");
+  const petName = shadow.querySelector(".codex-pet-name");
+  const result = shadow.querySelector(".codex-pet-result");
+  const resultContent = shadow.querySelector(".codex-pet-result-content");
+  const chatBox = shadow.querySelector(".codex-pet-chat");
+  const textarea = shadow.querySelector("textarea");
 
-  document.documentElement.appendChild(root);
+  document.documentElement.appendChild(host);
   moveTo(x, y);
   loadSettings();
   scheduleNextFrame();
@@ -176,7 +195,7 @@
       setBusy("处理中...");
       if (action === "translate") {
         const response = await send({ type: "TRANSLATE", text: getSelectedOrPageText() });
-        setResult(response.translatedText);
+        setResult(response.translatedText, { markdown: true });
       }
 
       if (action === "send-chat") {
@@ -185,7 +204,7 @@
           userText: textarea.value,
           page: getPagePayload()
         });
-        setResult(response.answer);
+        setResult(response.answer, { markdown: true });
       }
 
       if (action === "summon") {
@@ -252,7 +271,7 @@
 
   function applyVisibility() {
     const visible = settings.petEnabled !== false;
-    root.hidden = !visible;
+    host.hidden = !visible;
     if (!visible) {
       panelOpen = false;
       panel.hidden = true;
@@ -267,6 +286,7 @@
     frameWidth = metrics.frameWidth;
     frameHeight = metrics.frameHeight;
 
+    host.style.width = `${frameWidth}px`;
     root.style.width = `${frameWidth}px`;
     sprite.style.width = `${frameWidth}px`;
     sprite.style.height = `${frameHeight}px`;
@@ -295,14 +315,22 @@
     setResult(text);
   }
 
-  function setResult(text) {
-    result.textContent = text || "";
+  function setResult(text, options = {}) {
+    result.hidden = !text;
+    resultContent.className = options.markdown
+      ? "codex-pet-result-content codex-pet-markdown"
+      : "codex-pet-result-content";
+    if (options.markdown) {
+      resultContent.innerHTML = markdownToSafeHtml(text);
+      return;
+    }
+    resultContent.textContent = text || "";
   }
 
   function moveTo(nextX, nextY) {
     x = nextX;
     y = nextY;
-    root.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    host.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
   }
 
   function clamp(value, min, max) {
@@ -370,5 +398,69 @@
     input.select();
     document.execCommand("copy");
     input.remove();
+  }
+
+  function markdownToSafeHtml(markdown) {
+    const lines = String(markdown || "").replace(/\r\n/g, "\n").split("\n");
+    const html = [];
+    let inList = false;
+
+    for (const rawLine of lines) {
+      const line = rawLine.trim();
+      if (!line) {
+        if (inList) {
+          html.push("</ul>");
+          inList = false;
+        }
+        continue;
+      }
+
+      const heading = line.match(/^(#{1,3})\s+(.+)$/);
+      if (heading) {
+        if (inList) {
+          html.push("</ul>");
+          inList = false;
+        }
+        const level = heading[1].length;
+        html.push(`<h${level}>${formatInlineMarkdown(heading[2])}</h${level}>`);
+        continue;
+      }
+
+      const listItem = line.match(/^[-*]\s+(.+)$/);
+      if (listItem) {
+        if (!inList) {
+          html.push("<ul>");
+          inList = true;
+        }
+        html.push(`<li>${formatInlineMarkdown(listItem[1])}</li>`);
+        continue;
+      }
+
+      if (inList) {
+        html.push("</ul>");
+        inList = false;
+      }
+      html.push(`<p>${formatInlineMarkdown(line)}</p>`);
+    }
+
+    if (inList) {
+      html.push("</ul>");
+    }
+
+    return html.join("");
+  }
+
+  function formatInlineMarkdown(text) {
+    return escapeHtml(text)
+      .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+      .replace(/`([^`]+)`/g, "<code>$1</code>");
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
   }
 })();

@@ -17,6 +17,7 @@ import {
   sanitizeFileTitle,
   shouldRetryHttpStatus,
   parseGoogleTranslateResponse,
+  markdownToSafeHtml,
   truncateForModel,
   upsertById
 } from "../src/shared/core.js";
@@ -156,6 +157,15 @@ test("parseGoogleTranslateResponse combines translated segments", () => {
   const response = [[["你好", "hello"], ["世界", "world"]], null, "en"];
 
   assert.equal(parseGoogleTranslateResponse(response), "你好世界");
+});
+
+test("markdownToSafeHtml renders common markdown and escapes html", () => {
+  const result = markdownToSafeHtml("# 标题\n\n- 第一项\n- <script>alert(1)</script>\n\n正文 **重点**");
+
+  assert.match(result, /<h1>标题<\/h1>/);
+  assert.match(result, /<li>第一项<\/li>/);
+  assert.match(result, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+  assert.match(result, /<strong>重点<\/strong>/);
 });
 
 test("ensureJsonResponse rejects HTML model responses with a clear configuration hint", () => {

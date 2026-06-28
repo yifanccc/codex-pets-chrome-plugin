@@ -14,6 +14,7 @@ let settings = { ...DEFAULTS };
 let previewFrame = 0;
 let editingPetId = "";
 let editingModelId = "";
+let draftPetEnabled = true;
 
 const petNameInput = document.querySelector("#pet-name");
 const petDescriptionInput = document.querySelector("#pet-description");
@@ -25,6 +26,7 @@ const petSelect = document.querySelector("#pet-select");
 const petList = document.querySelector("#pet-list");
 const previewSprite = document.querySelector("#preview-sprite");
 const petEnabled = document.querySelector("#pet-enabled");
+const applyPetEnabledButton = document.querySelector("#apply-pet-enabled");
 const petScale = document.querySelector("#pet-scale");
 const scaleLabel = document.querySelector("#scale-label");
 const modelForm = document.querySelector("#model-form");
@@ -78,7 +80,13 @@ petSelect.addEventListener("change", async () => {
 });
 
 petEnabled.addEventListener("change", async () => {
-  settings.petEnabled = petEnabled.checked;
+  draftPetEnabled = petEnabled.checked;
+  renderPetEnabledButton();
+  setStatus("显示状态已选择，点击按钮后生效。");
+});
+
+applyPetEnabledButton.addEventListener("click", async () => {
+  settings.petEnabled = draftPetEnabled;
   await save();
   setStatus(settings.petEnabled ? "桌宠已全局打开。" : "桌宠已全局关闭。");
 });
@@ -185,7 +193,9 @@ async function save() {
 
 function render() {
   kbFolder.value = settings.knowledgeBaseFolder || DEFAULTS.knowledgeBaseFolder;
-  petEnabled.checked = settings.petEnabled !== false;
+  draftPetEnabled = settings.petEnabled !== false;
+  petEnabled.checked = draftPetEnabled;
+  renderPetEnabledButton();
   petScale.value = String(Math.round(normalizePetScale(settings.petScale) * 100));
   scaleLabel.textContent = `${petScale.value}%`;
   renderPetControls();
@@ -230,9 +240,17 @@ function renderModelControls() {
   modelList.innerHTML = settings.models
     .map((model) => {
       const id = escapeHtml(model.id);
+      const current = model.id === settings.currentModelId;
       return `
-      <div class="item">
-        <span>${escapeHtml(model.name)} · ${escapeHtml(model.model)}</span>
+      <div class="item model-item">
+        <div class="model-main">
+          <div>
+            <strong>${escapeHtml(model.name)}</strong>
+            ${current ? '<span class="badge">当前</span>' : ""}
+          </div>
+          <code>${escapeHtml(model.model)}</code>
+          <small>${escapeHtml(model.baseUrl)}</small>
+        </div>
         <div class="item-actions">
           <button class="secondary" type="button" data-edit-model="${id}">编辑</button>
           <button class="secondary" type="button" data-remove-model="${id}">删除</button>
@@ -241,6 +259,10 @@ function renderModelControls() {
     `;
     })
     .join("");
+}
+
+function renderPetEnabledButton() {
+  applyPetEnabledButton.textContent = draftPetEnabled ? "打开桌宠" : "关闭桌宠";
 }
 
 function renderPreview() {

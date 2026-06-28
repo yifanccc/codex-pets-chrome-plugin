@@ -5,6 +5,12 @@
   "version": "0.1.0",
   "permissions": ["storage", "unlimitedStorage", "tabs", "downloads", "clipboardWrite"],
   "host_permissions": ["<all_urls>"],
+  "web_accessible_resources": [
+    {
+      "resources": ["src/content.css"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "background": {
     "service_worker": "src/background.js",
     "type": "module"
@@ -17,7 +23,6 @@
     {
       "matches": ["<all_urls>"],
       "js": ["src/content.js"],
-      "css": ["src/content.css"],
       "run_at": "document_start"
     }
   ]
