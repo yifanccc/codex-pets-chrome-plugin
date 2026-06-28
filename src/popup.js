@@ -5,6 +5,7 @@ const DEFAULTS = {
   currentModelId: "",
   petEnabled: true,
   petScale: 1,
+  petPosition: null,
   knowledgeBaseFolder: "codex-pets-knowledge"
 };
 

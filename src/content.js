@@ -92,7 +92,7 @@
   chrome.storage.onChanged.addListener((changes, area) => {
     if (
       area === "local" &&
-      (changes.pets || changes.currentPetId || changes.petEnabled || changes.petScale)
+      (changes.pets || changes.currentPetId || changes.petEnabled || changes.petScale || changes.petPosition)
     ) {
       loadSettings();
     }
@@ -132,6 +132,9 @@
     dragState = "";
     sprite.releasePointerCapture(event.pointerId);
     setState("idle");
+    if (movedDuringDrag) {
+      savePosition();
+    }
   });
 
   sprite.addEventListener("click", () => {
@@ -174,6 +177,7 @@
     settings = response.settings || {};
     currentPet = (settings.pets || []).find((pet) => pet.id === settings.currentPetId) || null;
     petScale = normalizeScale(settings.petScale);
+    applySavedPosition();
     applyVisibility();
     applyPetAppearance();
     renderPetName();
@@ -291,6 +295,16 @@
     }
   }
 
+  function applySavedPosition() {
+    const position = settings.petPosition;
+    if (!position || !Number.isFinite(Number(position.x)) || !Number.isFinite(Number(position.y))) {
+      return;
+    }
+
+    x = Number(position.x);
+    y = Number(position.y);
+  }
+
   function setState(nextState) {
     state = nextState;
     frame = 0;
@@ -337,6 +351,19 @@
     x = nextX;
     y = nextY;
     host.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+  }
+
+  async function savePosition() {
+    try {
+      await chrome.storage.local.set({
+        petPosition: {
+          x: Math.round(x),
+          y: Math.round(y)
+        }
+      });
+    } catch (error) {
+      console.warn("Codex Pet failed to save position.", error);
+    }
   }
 
   function clamp(value, min, max) {

@@ -7,6 +7,7 @@ Chrome MV3 extension that lets a Codex-compatible pet accompany normal web brows
 - Import a Codex pet with `pet.json` and `spritesheet.webp`.
 - Preview and choose the active pet in the extension options page.
 - Show the pet in the bottom-right corner of every normal page.
+- Keep the last dragged position across page refreshes and other pages.
 - Open the Chrome toolbar popup to toggle the pet, choose a pet, and choose a model.
 - Adjust the pet size globally from 60% to 180%.
 - Use Codex pet atlas states for idle, running, failed, waving, and drag direction.

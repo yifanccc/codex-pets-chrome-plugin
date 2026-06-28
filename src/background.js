@@ -92,6 +92,7 @@ async function getSettings() {
     currentModelId: "",
     petEnabled: true,
     petScale: 1,
+    petPosition: null,
     knowledgeBaseFolder: "codex-pets-knowledge"
   };
   return chrome.storage.local.get(defaults);
