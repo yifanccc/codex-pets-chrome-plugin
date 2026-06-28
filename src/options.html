@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Codex Pets 配置</title>
+    <link rel="stylesheet" href="./options.css">
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Chrome companion</p>
+          <h1>Codex Pets</h1>
+        </div>
+        <p>导入桌宠、选择模型、保存网页记忆。这里是它的驾驶舱。</p>
+      </header>
+
+      <div class="dashboard">
+        <section class="control-deck">
+          <div class="deck-topline">
+            <span>当前伙伴</span>
+            <label class="switch">
+              <input id="pet-enabled" type="checkbox">
+              <span></span>
+            </label>
+          </div>
+          <div class="pet-stage">
+            <div id="preview-sprite"></div>
+          </div>
+          <label class="field compact">
+            选择宠物
+            <select id="pet-select"></select>
+          </label>
+          <label class="field compact">
+            桌宠大小 <span id="scale-label">100%</span>
+            <input id="pet-scale" type="range" min="60" max="180" step="5">
+          </label>
+        </section>
+
+        <div class="stack">
+          <section>
+            <div class="section-title">
+              <h2>导入宠物</h2>
+              <span>Codex pet.json + spritesheet.webp</span>
+            </div>
+            <div class="import-row">
+              <label>pet.json <input id="pet-json" type="file" accept="application/json,.json"></label>
+              <label>spritesheet.webp <input id="pet-sheet" type="file" accept="image/webp"></label>
+              <button id="add-pet" class="primary-action" type="button">添加宠物</button>
+            </div>
+            <div id="pet-list" class="list"></div>
+          </section>
+
+          <section>
+            <div class="section-title">
+              <h2>大模型</h2>
+              <span>OpenAI-compatible endpoint</span>
+            </div>
+            <form id="model-form" class="grid">
+              <input name="name" placeholder="名称，例如 Local GPT">
+              <input name="baseUrl" placeholder="Base URL，例如 https://api.openai.com/v1">
+              <input name="model" placeholder="Model，例如 gpt-4.1-mini">
+              <input name="apiKey" placeholder="API key" type="password">
+              <button class="primary-action" type="submit">添加模型</button>
+            </form>
+            <label class="field compact select-line">
+              当前模型
+              <select id="model-select"></select>
+            </label>
+            <div id="model-list" class="list"></div>
+          </section>
+
+          <section>
+            <div class="section-title">
+              <h2>知识库</h2>
+              <span>Markdown notes</span>
+            </div>
+            <label class="field">
+              下载目录下的子目录
+              <input id="kb-folder" placeholder="codex-pets-knowledge">
+            </label>
+            <p class="note">记忆功能会调用大模型返回文件标题和 Markdown 摘要，并自动下载到该子目录，文件内始终包含原始链接。</p>
+          </section>
+        </div>
+      </div>
+
+      <p id="status" role="status"></p>
+    </main>
+    <script type="module" src="./options.js"></script>
+  </body>
+</html>
