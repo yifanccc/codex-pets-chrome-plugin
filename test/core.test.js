@@ -124,6 +124,7 @@ test("getNextPetFrame advances within each state's real frame count", () => {
 });
 
 test("buildChatEndpoint accepts base URLs and full chat completion URLs", () => {
+  assert.equal(buildChatEndpoint("https://api.example.com"), "https://api.example.com/v1/chat/completions");
   assert.equal(buildChatEndpoint("https://api.example.com/v1"), "https://api.example.com/v1/chat/completions");
   assert.equal(
     buildChatEndpoint("https://api.example.com/v1/chat/completions"),

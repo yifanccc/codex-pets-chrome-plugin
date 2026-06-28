@@ -149,7 +149,10 @@ export function buildChatEndpoint(baseUrl) {
   if (trimmed.endsWith("/chat/completions")) {
     return trimmed;
   }
-  return `${trimmed}/chat/completions`;
+  if (trimmed.endsWith("/v1")) {
+    return `${trimmed}/chat/completions`;
+  }
+  return `${trimmed}/v1/chat/completions`;
 }
 
 export function shouldRetryHttpStatus(status) {
