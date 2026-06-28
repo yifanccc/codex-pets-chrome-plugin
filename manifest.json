@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "codex-pets-on-chrome",
-  "description": "A Codex pet companion for browsing, translation, chat, Codex handoff, and local knowledge notes.",
+  "description": "A Codex pet companion for browsing, translation, summaries, Codex handoff, and local knowledge notes.",
   "version": "0.1.0",
   "permissions": ["storage", "unlimitedStorage", "tabs", "downloads", "clipboardWrite"],
   "host_permissions": ["<all_urls>"],
@@ -17,7 +17,8 @@
   },
   "options_page": "src/options.html",
   "action": {
-    "default_title": "Codex Pets"
+    "default_title": "Codex Pets",
+    "default_popup": "src/popup.html"
   },
   "content_scripts": [
     {

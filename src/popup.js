@@ -1,0 +1,94 @@
+const DEFAULTS = {
+  pets: [],
+  currentPetId: "",
+  models: [],
+  currentModelId: "",
+  petEnabled: true,
+  petScale: 1,
+  knowledgeBaseFolder: "codex-pets-knowledge"
+};
+
+let settings = { ...DEFAULTS };
+let draftEnabled = true;
+
+const enabled = document.querySelector("#enabled");
+const applyEnabled = document.querySelector("#apply-enabled");
+const petSelect = document.querySelector("#pet-select");
+const modelSelect = document.querySelector("#model-select");
+const openOptions = document.querySelector("#open-options");
+const statePill = document.querySelector("#state-pill");
+const status = document.querySelector("#status");
+
+load();
+
+enabled.addEventListener("change", () => {
+  draftEnabled = enabled.checked;
+  renderPower();
+  setStatus("已选择显示状态，点击按钮后生效。");
+});
+
+applyEnabled.addEventListener("click", async () => {
+  settings.petEnabled = draftEnabled;
+  await save();
+  await chrome.runtime.sendMessage({ type: "SET_ENABLED", enabled: settings.petEnabled });
+  setStatus(settings.petEnabled ? "桌宠已全局打开。" : "桌宠已全局关闭。");
+});
+
+petSelect.addEventListener("change", async () => {
+  settings.currentPetId = petSelect.value;
+  await save();
+  setStatus("当前宠物已切换。");
+});
+
+modelSelect.addEventListener("change", async () => {
+  settings.currentModelId = modelSelect.value;
+  await save();
+  setStatus("当前模型已切换。");
+});
+
+openOptions.addEventListener("click", async () => {
+  await chrome.runtime.openOptionsPage();
+  window.close();
+});
+
+async function load() {
+  settings = await chrome.storage.local.get(DEFAULTS);
+  render();
+}
+
+async function save() {
+  await chrome.storage.local.set(settings);
+  render();
+}
+
+function render() {
+  draftEnabled = settings.petEnabled !== false;
+  enabled.checked = draftEnabled;
+  renderPower();
+  renderSelect(petSelect, settings.pets, settings.currentPetId, "还没有导入宠物", "displayName");
+  renderSelect(modelSelect, settings.models, settings.currentModelId, "还没有模型配置", "name");
+}
+
+function renderPower() {
+  applyEnabled.textContent = draftEnabled ? "打开桌宠" : "关闭桌宠";
+  statePill.textContent = settings.petEnabled !== false ? "ON" : "OFF";
+  statePill.classList.toggle("is-on", settings.petEnabled !== false);
+}
+
+function renderSelect(select, items, currentId, emptyLabel, labelKey) {
+  select.innerHTML = "";
+  if (!items.length) {
+    select.append(new Option(emptyLabel, ""));
+    select.disabled = true;
+    return;
+  }
+
+  select.disabled = false;
+  for (const item of items) {
+    select.append(new Option(item[labelKey] || item.id, item.id, false, item.id === currentId));
+  }
+}
+
+function setStatus(text) {
+  status.textContent = text;
+}

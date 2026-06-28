@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-    "check": "node --check src/background.js && node --check src/content.js && node --check src/options.js && node --check src/shared/core.js"
+    "check": "node --check src/background.js && node --check src/content.js && node --check src/options.js && node --check src/popup.js && node --check src/shared/core.js"
   }
 }

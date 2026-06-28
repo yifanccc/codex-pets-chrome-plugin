@@ -16,8 +16,6 @@ let editingPetId = "";
 let editingModelId = "";
 let draftPetEnabled = true;
 
-const petNameInput = document.querySelector("#pet-name");
-const petDescriptionInput = document.querySelector("#pet-description");
 const petJsonInput = document.querySelector("#pet-json");
 const petSheetInput = document.querySelector("#pet-sheet");
 const addPetButton = document.querySelector("#add-pet");
@@ -56,8 +54,8 @@ addPetButton.addEventListener("click", async () => {
   const id = editingPetId || petJson.id || crypto.randomUUID();
   const pet = {
     id,
-    displayName: petNameInput.value.trim() || petJson.displayName || id,
-    description: petDescriptionInput.value.trim() || petJson.description || "",
+    displayName: petJson.displayName || petJson.name || id,
+    description: petJson.description || "",
     petJson,
     spritesheetDataUrl
   };
@@ -297,19 +295,15 @@ function startPetEdit(id) {
   const pet = settings.pets.find((item) => item.id === id);
   if (!pet) return;
   editingPetId = id;
-  petNameInput.value = pet.displayName || "";
-  petDescriptionInput.value = pet.description || "";
   petJsonInput.value = "";
   petSheetInput.value = "";
   addPetButton.textContent = "保存宠物";
   cancelPetEditButton.hidden = false;
-  setStatus(`正在编辑宠物：${pet.displayName}`);
+  setStatus(`正在编辑宠物：${pet.displayName}，可重新选择文件后保存。`);
 }
 
 function resetPetForm() {
   editingPetId = "";
-  petNameInput.value = "";
-  petDescriptionInput.value = "";
   petJsonInput.value = "";
   petSheetInput.value = "";
   addPetButton.textContent = "添加宠物";

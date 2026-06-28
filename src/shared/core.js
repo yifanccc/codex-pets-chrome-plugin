@@ -107,6 +107,28 @@ export function buildMemoryPrompt(page) {
   ].join("\n");
 }
 
+export function buildSummaryPrompt(page) {
+  const title = String(page?.title || "Untitled page").trim();
+  const url = String(page?.url || "").trim();
+  const text = truncateForModel(page?.text || "");
+
+  return [
+    "你是一个网页总结助手。请只基于给定网页内容，用中文输出 Markdown。",
+    "不要编造网页中没有的信息；如果内容不足，请明确说明。",
+    "输出结构必须包含：",
+    "# 页面总结",
+    "## 核心内容",
+    "## 关键信息",
+    "## 可以继续关注",
+    "",
+    `页面标题: ${title}`,
+    `页面链接: ${url}`,
+    "",
+    "网页内容:",
+    text
+  ].join("\n");
+}
+
 export function extractPageText(documentLike = document) {
   const text = documentLike?.body?.innerText || "";
   return String(text)

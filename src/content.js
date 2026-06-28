@@ -60,13 +60,9 @@
       </div>
       <div class="codex-pet-actions">
         <button type="button" data-action="translate"><span>译</span><strong>翻译</strong><small>转成中文</small></button>
-        <button type="button" data-action="chat"><span>问</span><strong>对话</strong><small>询问页面</small></button>
+        <button type="button" data-action="summary"><span>总</span><strong>总结</strong><small>页面要点</small></button>
         <button type="button" data-action="summon"><span>C</span><strong>召唤 Codex</strong><small>复制链接</small></button>
         <button type="button" data-action="remember"><span>记</span><strong>记忆</strong><small>生成摘要</small></button>
-      </div>
-      <div class="codex-pet-chat" hidden>
-        <textarea placeholder="问问宠物这个页面的内容"></textarea>
-        <button type="button" data-action="send-chat">发送</button>
       </div>
       <div class="codex-pet-result" role="status" hidden>
         <div class="codex-pet-result-content"></div>
@@ -80,10 +76,9 @@
   const sprite = shadow.querySelector(".codex-pet-sprite");
   const panel = shadow.querySelector(".codex-pet-panel");
   const petName = shadow.querySelector(".codex-pet-name");
+  const closeButton = shadow.querySelector(".codex-pet-close");
   const result = shadow.querySelector(".codex-pet-result");
   const resultContent = shadow.querySelector(".codex-pet-result-content");
-  const chatBox = shadow.querySelector(".codex-pet-chat");
-  const textarea = shadow.querySelector("textarea");
 
   document.documentElement.appendChild(host);
   moveTo(x, y);
@@ -151,26 +146,23 @@
     }
   });
 
+  closeButton.addEventListener("click", (event) => {
+    event.stopPropagation();
+    closePanel();
+  });
+
   root.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
     const action = button.dataset.action;
 
     if (action === "close-pet") {
-      panelOpen = false;
-      panel.hidden = true;
-      setState("idle");
+      closePanel();
       return;
     }
 
     if (action === "options") {
       await send({ type: "OPEN_OPTIONS" });
-      return;
-    }
-
-    if (action === "chat") {
-      chatBox.hidden = !chatBox.hidden;
-      textarea.focus();
       return;
     }
 
@@ -198,17 +190,13 @@
         setResult(response.translatedText, { markdown: true });
       }
 
-      if (action === "send-chat") {
-        const response = await send({
-          type: "CHAT",
-          userText: textarea.value,
-          page: getPagePayload()
-        });
-        setResult(response.answer, { markdown: true });
+      if (action === "summary") {
+        const response = await send({ type: "SUMMARY", page: getPagePayload() });
+        setResult(response.summary, { markdown: true });
       }
 
       if (action === "summon") {
-        const prompt = `请阅读这个页面并继续对话：\n标题：${document.title}\n链接：${location.href}`;
+        const prompt = `请阅读这个页面并继续处理：\n标题：${document.title}\n链接：${location.href}`;
         await writeClipboard(prompt);
         try {
           await send({ type: "SUMMON_CODEX" });
@@ -312,7 +300,19 @@
 
   function setBusy(text) {
     setState("running");
-    setResult(text);
+    setLoading(text);
+  }
+
+  function setLoading(text) {
+    result.hidden = false;
+    resultContent.className = "codex-pet-result-content codex-pet-loading";
+    resultContent.innerHTML = `
+      <div class="codex-pet-loader" aria-hidden="true"><span></span><span></span><span></span></div>
+      <div>
+        <strong>${escapeHtml(text || "处理中...")}</strong>
+        <small>正在阅读当前页面，请稍等一下。</small>
+      </div>
+    `;
   }
 
   function setResult(text, options = {}) {
@@ -325,6 +325,12 @@
       return;
     }
     resultContent.textContent = text || "";
+  }
+
+  function closePanel() {
+    panelOpen = false;
+    panel.hidden = true;
+    setState("idle");
   }
 
   function moveTo(nextX, nextY) {

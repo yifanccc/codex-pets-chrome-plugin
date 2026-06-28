@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   buildMemoryPrompt,
+  buildSummaryPrompt,
   buildMemoryMarkdown,
   buildChatEndpoint,
   buildCodexLaunchUrl,
@@ -84,6 +85,19 @@ test("buildMemoryPrompt strongly constrains title and markdown JSON output", () 
   assert.match(prompt, /"title"/);
   assert.match(prompt, /"markdown"/);
   assert.match(prompt, /original URL/);
+});
+
+test("buildSummaryPrompt constrains page summary markdown and model input length", () => {
+  const prompt = buildSummaryPrompt({
+    title: "页面标题",
+    url: "https://example.com",
+    text: "正文".repeat(6000)
+  });
+
+  assert.match(prompt, /# 页面总结/);
+  assert.match(prompt, /## 核心内容/);
+  assert.match(prompt, /不要编造/);
+  assert.ok(prompt.length < 10300);
 });
 
 test("extractPageText removes script and style text while preserving visible content", () => {

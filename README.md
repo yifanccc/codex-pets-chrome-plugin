@@ -7,11 +7,11 @@ Chrome MV3 extension that lets a Codex-compatible pet accompany normal web brows
 - Import a Codex pet with `pet.json` and `spritesheet.webp`.
 - Preview and choose the active pet in the extension options page.
 - Show the pet in the bottom-right corner of every normal page.
-- Toggle the pet globally from the Chrome toolbar button or the options page.
+- Open the Chrome toolbar popup to toggle the pet, choose a pet, and choose a model.
 - Adjust the pet size globally from 60% to 180%.
 - Use Codex pet atlas states for idle, running, failed, waving, and drag direction.
 - Open Google Translate for selected text or page text.
-- Ask the configured OpenAI-compatible model about the current page.
+- Summarize the current page with the configured OpenAI-compatible model.
 - Copy a Codex handoff prompt containing the page title and URL.
 - Generate a local knowledge note through the model, with a required model-produced file title and Markdown summary.
 
@@ -53,6 +53,7 @@ Downloads/codex-pets-knowledge/2026-06-28-页面摘要.md
 3. Click "Load unpacked".
 4. Select this folder: `/Users/caoyifan/projects/codex-pets-chrome-plugin`.
 5. Open the extension details page and click "Extension options" to import a pet and configure a model.
+6. Click the toolbar icon to open the quick popup for global display, pet, and model selection.
 
 ## Development
 

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Codex Pets</title>
+    <link rel="stylesheet" href="./popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <p>Codex Pets</p>
+          <h1>页面伙伴</h1>
+        </div>
+        <span id="state-pill">OFF</span>
+      </header>
+
+      <section class="power">
+        <label>
+          <span>全局显示</span>
+          <input id="enabled" type="checkbox">
+        </label>
+        <button id="apply-enabled" type="button">打开桌宠</button>
+      </section>
+
+      <label class="field">
+        当前宠物
+        <select id="pet-select"></select>
+      </label>
+
+      <label class="field">
+        当前模型
+        <select id="model-select"></select>
+      </label>
+
+      <button id="open-options" class="secondary" type="button">打开完整配置</button>
+      <p id="status" role="status"></p>
+    </main>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

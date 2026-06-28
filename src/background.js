@@ -4,6 +4,7 @@ import {
   buildGoogleTranslateUrl,
   buildMemoryMarkdown,
   buildMemoryPrompt,
+  buildSummaryPrompt,
   ensureJsonResponse,
   parseGoogleTranslateResponse,
   parseMemoryResponse,
@@ -11,13 +12,6 @@ import {
   shouldRetryHttpStatus,
   truncateForModel
 } from "./shared/core.js";
-
-chrome.action.onClicked.addListener(async () => {
-  const settings = await getSettings();
-  const nextEnabled = settings.petEnabled === false;
-  await chrome.storage.local.set({ petEnabled: nextEnabled });
-  await updateActionState(nextEnabled);
-});
 
 chrome.runtime.onInstalled.addListener(async () => {
   const settings = await getSettings();
@@ -75,10 +69,10 @@ async function handleMessage(message) {
     return { ok: true };
   }
 
-  if (message.type === "CHAT") {
+  if (message.type === "SUMMARY") {
     const settings = await getSettings();
-    const answer = await chatWithPage(settings, message);
-    return { ok: true, answer };
+    const summary = await summarizePage(settings, message.page);
+    return { ok: true, summary };
   }
 
   if (message.type === "REMEMBER") {
@@ -104,7 +98,7 @@ async function getSettings() {
 }
 
 async function updateActionState(enabled) {
-  await chrome.action.setTitle({ title: enabled ? "关闭 Codex Pet" : "打开 Codex Pet" });
+  await chrome.action.setTitle({ title: enabled ? "Codex Pets：已打开" : "Codex Pets：已关闭" });
   await chrome.action.setBadgeText({ text: enabled ? "ON" : "OFF" });
   await chrome.action.setBadgeBackgroundColor({ color: enabled ? "#3157ff" : "#697386" });
 }
@@ -120,29 +114,10 @@ function getCurrentModel(settings) {
   return model;
 }
 
-async function chatWithPage(settings, message) {
-  const page = message.page || {};
-  const userText = String(message.userText || "").trim();
-  if (!userText) {
-    throw new Error("请输入要问宠物的问题。");
-  }
-
-  const prompt = [
-    "你是一个陪用户浏览网页的 Codex 桌宠。请基于网页内容用中文回答。",
-    "如果网页内容不足以回答，请明确说无法从当前页面判断，不要编造。",
-    "",
-    `页面标题: ${page.title || ""}`,
-    `页面链接: ${page.url || ""}`,
-    "",
-    "网页内容:",
-    truncateForModel(page.text || ""),
-    "",
-    `用户问题: ${userText}`
-  ].join("\n");
-
+async function summarizePage(settings, page = {}) {
   return callChatCompletions(getCurrentModel(settings), [
-    { role: "system", content: "你是一个简洁、可靠的中文网页阅读助手。" },
-    { role: "user", content: prompt }
+    { role: "system", content: "你是一个简洁、可靠的中文网页总结助手。" },
+    { role: "user", content: buildSummaryPrompt(page) }
   ]);
 }
 
