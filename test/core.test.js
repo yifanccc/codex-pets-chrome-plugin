@@ -13,6 +13,7 @@ import {
   getPetAnimation,
   getPetMetrics,
   getPetFrame,
+  resolvePetPreviewState,
   extractPageText,
   parseMemoryResponse,
   sanitizeFileTitle,
@@ -130,6 +131,12 @@ test("getPetAnimation exposes Codex row-specific frame durations", () => {
     frameCount: 4,
     durations: [140, 140, 140, 280]
   });
+});
+
+test("resolvePetPreviewState defaults the large preview to idle and accepts known states", () => {
+  assert.equal(resolvePetPreviewState(""), "idle");
+  assert.equal(resolvePetPreviewState("unknown"), "idle");
+  assert.equal(resolvePetPreviewState("failed"), "failed");
 });
 
 test("getNextPetFrame advances within each state's real frame count", () => {

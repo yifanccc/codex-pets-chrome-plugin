@@ -1,4 +1,10 @@
-import { getPetAnimation, getPetMetrics, normalizePetScale, upsertById } from "./shared/core.js";
+import {
+  getPetAnimation,
+  getPetMetrics,
+  normalizePetScale,
+  resolvePetPreviewState,
+  upsertById
+} from "./shared/core.js";
 
 const DEFAULTS = {
   pets: [],
@@ -26,6 +32,7 @@ const PREVIEW_STATES = [
 let settings = { ...DEFAULTS };
 let previewFrame = 0;
 let previewFrames = Object.fromEntries(PREVIEW_STATES.map(([state]) => [state, 0]));
+let selectedPreviewState = "idle";
 let editingPetId = "";
 let editingModelId = "";
 
@@ -107,6 +114,14 @@ petScale.addEventListener("change", async () => {
   settings.petScale = normalizePetScale(Number(petScale.value) / 100);
   await save();
   setStatus(`桌宠大小已保存为 ${Math.round(settings.petScale * 100)}%。`);
+});
+
+statePreviewList.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-state]");
+  if (!button) return;
+  selectedPreviewState = resolvePetPreviewState(button.dataset.state);
+  previewFrame = 0;
+  renderPreview();
 });
 
 modelForm.addEventListener("submit", async (event) => {
@@ -288,8 +303,9 @@ function renderPreview() {
   }
 
   previewSprite.textContent = "";
-  setSpriteFrame(previewSprite, pet, metrics, "idle", previewFrame);
-  previewFrame = (previewFrame + 1) % getPetAnimation("idle").frameCount;
+  selectedPreviewState = resolvePetPreviewState(selectedPreviewState);
+  setSpriteFrame(previewSprite, pet, metrics, selectedPreviewState, previewFrame);
+  previewFrame = (previewFrame + 1) % getPetAnimation(selectedPreviewState).frameCount;
   renderStatePreviews(pet);
 }
 
@@ -299,18 +315,22 @@ function renderStatePreviews(pet) {
     statePreviewList.innerHTML = PREVIEW_STATES
       .map(
         ([state, label]) => `
-        <div class="state-preview" data-state="${state}">
+        <button class="state-preview" type="button" data-state="${state}" aria-pressed="false">
           <div class="state-sprite"></div>
           <span>${label}</span>
-        </div>
+        </button>
       `
       )
       .join("");
   }
 
   for (const [state] of PREVIEW_STATES) {
-    const cell = statePreviewList.querySelector(`[data-state="${state}"] .state-sprite`);
+    const previewButton = statePreviewList.querySelector(`[data-state="${state}"]`);
+    const cell = previewButton.querySelector(".state-sprite");
     const frameIndex = previewFrames[state] || 0;
+    const isSelected = state === selectedPreviewState;
+    previewButton.classList.toggle("is-selected", isSelected);
+    previewButton.setAttribute("aria-pressed", String(isSelected));
     setSpriteFrame(cell, pet, miniMetrics, state, frameIndex);
     previewFrames[state] = (frameIndex + 1) % getPetAnimation(state).frameCount;
   }

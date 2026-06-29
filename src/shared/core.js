@@ -154,6 +154,10 @@ export function getPetAnimation(state) {
   };
 }
 
+export function resolvePetPreviewState(state) {
+  return PET_STATES.includes(state) ? state : "idle";
+}
+
 export function getNextPetFrame(state, frameIndex) {
   const animation = getPetAnimation(state);
   const frame = (Math.abs(Number(frameIndex) || 0) + 1) % animation.frameCount;

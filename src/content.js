@@ -56,13 +56,16 @@
           <strong>Codex Pet</strong>
           <span class="codex-pet-name">未选择宠物</span>
         </div>
-        <button type="button" data-action="close-pet" title="关闭弹窗" class="codex-pet-close">×</button>
+        <div class="codex-pet-panel-tools">
+          <button type="button" data-action="configure" title="打开配置" aria-label="打开配置" class="codex-pet-icon-button">⚙</button>
+          <button type="button" data-action="close-pet" title="关闭弹窗" aria-label="关闭弹窗" class="codex-pet-icon-button codex-pet-close">×</button>
+        </div>
       </div>
       <div class="codex-pet-actions">
-        <button type="button" data-action="translate" data-tip="翻译：把选中文本或页面内容转成中文" aria-label="翻译"><span>译</span></button>
-        <button type="button" data-action="summary" data-tip="总结：提炼当前页面的主要内容" aria-label="总结"><span>总</span></button>
-        <button type="button" data-action="summon" data-tip="召唤 Codex：打开新对话并带入页面链接" aria-label="召唤 Codex"><span>C</span></button>
-        <button type="button" data-action="remember" data-tip="记忆：整理页面内容并保存到知识库" aria-label="记忆"><span>记</span></button>
+        <button type="button" data-action="translate" title="把选中文本或页面内容转成中文" aria-label="翻译"><span>翻译</span></button>
+        <button type="button" data-action="summary" title="提炼当前页面的主要内容" aria-label="总结"><span>总结</span></button>
+        <button type="button" data-action="summon" title="打开 Codex 并带入页面链接" aria-label="召唤 Codex"><span>Codex</span></button>
+        <button type="button" data-action="remember" title="整理页面内容并保存到知识库" aria-label="记忆"><span>记忆</span></button>
       </div>
       <div class="codex-pet-result" role="status" hidden>
         <button type="button" data-action="toggle-result" class="codex-pet-result-toggle" aria-expanded="true">
@@ -185,6 +188,12 @@
 
     if (action === "toggle-result") {
       setResultCollapsed(!result.classList.contains("is-collapsed"));
+      return;
+    }
+
+    if (action === "configure") {
+      await send({ type: "OPEN_OPTIONS" });
+      closePanel();
       return;
     }
 
