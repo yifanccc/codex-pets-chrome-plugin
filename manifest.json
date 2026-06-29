@@ -5,6 +5,12 @@
   "version": "0.1.0",
   "permissions": ["storage", "unlimitedStorage", "tabs", "downloads", "clipboardWrite"],
   "host_permissions": ["<all_urls>"],
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  },
   "web_accessible_resources": [
     {
       "resources": ["src/content.css"],
@@ -18,7 +24,13 @@
   "options_page": "src/options.html",
   "action": {
     "default_title": "Codex Pets",
-    "default_popup": "src/popup.html"
+    "default_popup": "src/popup.html",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "48": "assets/icons/icon48.png",
+      "128": "assets/icons/icon128.png"
+    }
   },
   "content_scripts": [
     {

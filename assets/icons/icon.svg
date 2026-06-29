@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Codex pet icon">
+  <defs>
+    <linearGradient id="bg" x1="18" y1="14" x2="112" y2="118" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#151c2e"/>
+      <stop offset="1" stop-color="#0b5660"/>
+    </linearGradient>
+    <linearGradient id="pet" x1="34" y1="34" x2="94" y2="95" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8be4ff"/>
+      <stop offset="1" stop-color="#18b89a"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="108" height="108" rx="28" fill="url(#bg)"/>
+  <path d="M43 49 38 32 55 42Z" fill="#8be4ff"/>
+  <path d="M85 49 90 32 73 42Z" fill="#18b89a"/>
+  <rect x="30" y="40" width="68" height="58" rx="23" fill="url(#pet)"/>
+  <path d="M46 45c8-7 28-8 39 1" fill="none" stroke="#d8fbff" stroke-width="5" stroke-linecap="round" opacity=".72"/>
+  <circle cx="51" cy="66" r="5.5" fill="#101827"/>
+  <circle cx="77" cy="66" r="5.5" fill="#101827"/>
+  <path d="M57 79c5 4 10 4 15 0" fill="none" stroke="#101827" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="93" cy="34" r="6" fill="#ffd66e"/>
+</svg>
