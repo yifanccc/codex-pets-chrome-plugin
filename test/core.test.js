@@ -155,8 +155,15 @@ test("shouldRetryHttpStatus retries transient upstream model failures", () => {
   assert.equal(shouldRetryHttpStatus(400), false);
 });
 
-test("buildCodexLaunchUrl uses the installed app scheme without guessing unsupported params", () => {
-  assert.equal(buildCodexLaunchUrl(), "codex://");
+test("buildCodexLaunchUrl opens a new Codex thread with prompt and source url", () => {
+  const url = buildCodexLaunchUrl({
+    prompt: "请阅读这个页面",
+    originUrl: "https://example.com/a?b=1"
+  });
+
+  assert.match(url, /^codex:\/\/new\?/);
+  assert.match(url, /prompt=%E8%AF%B7%E9%98%85%E8%AF%BB%E8%BF%99%E4%B8%AA%E9%A1%B5%E9%9D%A2/);
+  assert.match(url, /originUrl=https%3A%2F%2Fexample\.com%2Fa%3Fb%3D1/);
 });
 
 test("buildGoogleTranslateUrl targets Chinese inline translation", () => {

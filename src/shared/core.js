@@ -181,8 +181,17 @@ export function shouldRetryHttpStatus(status) {
   return [408, 429, 500, 502, 503, 504].includes(Number(status));
 }
 
-export function buildCodexLaunchUrl() {
-  return "codex://";
+export function buildCodexLaunchUrl({ prompt = "", originUrl = "" } = {}) {
+  const params = new URLSearchParams();
+  if (String(prompt || "").trim()) {
+    params.set("prompt", String(prompt).trim());
+  }
+  if (String(originUrl || "").trim()) {
+    params.set("originUrl", String(originUrl).trim());
+  }
+
+  const query = params.toString();
+  return query ? `codex://new?${query}` : "codex://new";
 }
 
 export function buildGoogleTranslateUrl(text) {

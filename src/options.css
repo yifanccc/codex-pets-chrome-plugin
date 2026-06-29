@@ -115,8 +115,10 @@ section {
 .pet-stage {
   display: grid;
   place-items: center;
+  gap: 12px;
   min-height: 238px;
   margin-bottom: 14px;
+  padding: 16px 10px;
   border: 1px solid rgba(53, 104, 255, 0.16);
   border-radius: 8px;
   background:
@@ -223,6 +225,35 @@ button.secondary {
   place-items: center;
   color: var(--accent);
   font-size: 42px;
+}
+
+.state-preview-list {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.state-preview {
+  min-width: 0;
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  padding: 6px 4px;
+  border: 1px solid rgba(53, 104, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.state-sprite {
+  background-repeat: no-repeat;
+}
+
+.state-preview span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .list {

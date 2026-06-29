@@ -67,7 +67,12 @@ async function handleMessage(message) {
   }
 
   if (message.type === "SUMMON_CODEX") {
-    await chrome.tabs.create({ url: buildCodexLaunchUrl() });
+    await chrome.tabs.create({
+      url: buildCodexLaunchUrl({
+        prompt: message.prompt,
+        originUrl: message.originUrl
+      })
+    });
     return { ok: true };
   }
 

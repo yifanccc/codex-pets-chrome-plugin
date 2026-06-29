@@ -11,8 +11,21 @@ const DEFAULTS = {
   knowledgeBaseFolder: "codex-pets-knowledge"
 };
 
+const PREVIEW_STATES = [
+  ["idle", "待机"],
+  ["running-right", "右跑"],
+  ["running-left", "左跑"],
+  ["waving", "挥手"],
+  ["jumping", "跳跃"],
+  ["failed", "失败"],
+  ["waiting", "等待"],
+  ["running", "加载"],
+  ["review", "审阅"]
+];
+
 let settings = { ...DEFAULTS };
 let previewFrame = 0;
+let previewFrames = Object.fromEntries(PREVIEW_STATES.map(([state]) => [state, 0]));
 let editingPetId = "";
 let editingModelId = "";
 
@@ -23,6 +36,7 @@ const cancelPetEditButton = document.querySelector("#cancel-pet-edit");
 const petSelect = document.querySelector("#pet-select");
 const petList = document.querySelector("#pet-list");
 const previewSprite = document.querySelector("#preview-sprite");
+const statePreviewList = document.querySelector("#state-preview-list");
 const petEnabledState = document.querySelector("#pet-enabled-state");
 const togglePetEnabledButton = document.querySelector("#toggle-pet-enabled");
 const petScale = document.querySelector("#pet-scale");
@@ -269,13 +283,47 @@ function renderPreview() {
   if (!pet?.spritesheetDataUrl) {
     previewSprite.style.backgroundImage = "";
     previewSprite.textContent = "⌁";
+    statePreviewList.innerHTML = "";
     return;
   }
 
   previewSprite.textContent = "";
-  previewSprite.style.backgroundImage = `url("${pet.spritesheetDataUrl}")`;
-  previewSprite.style.backgroundPosition = `-${previewFrame * metrics.frameWidth}px 0`;
+  setSpriteFrame(previewSprite, pet, metrics, "idle", previewFrame);
   previewFrame = (previewFrame + 1) % getPetAnimation("idle").frameCount;
+  renderStatePreviews(pet);
+}
+
+function renderStatePreviews(pet) {
+  const miniMetrics = getPetMetrics(0.56);
+  if (statePreviewList.children.length !== PREVIEW_STATES.length) {
+    statePreviewList.innerHTML = PREVIEW_STATES
+      .map(
+        ([state, label]) => `
+        <div class="state-preview" data-state="${state}">
+          <div class="state-sprite"></div>
+          <span>${label}</span>
+        </div>
+      `
+      )
+      .join("");
+  }
+
+  for (const [state] of PREVIEW_STATES) {
+    const cell = statePreviewList.querySelector(`[data-state="${state}"] .state-sprite`);
+    const frameIndex = previewFrames[state] || 0;
+    setSpriteFrame(cell, pet, miniMetrics, state, frameIndex);
+    previewFrames[state] = (frameIndex + 1) % getPetAnimation(state).frameCount;
+  }
+}
+
+function setSpriteFrame(element, pet, metrics, state, frameIndex) {
+  const animation = getPetAnimation(state);
+  const column = frameIndex % animation.frameCount;
+  element.style.width = `${metrics.frameWidth}px`;
+  element.style.height = `${metrics.frameHeight}px`;
+  element.style.backgroundSize = `${metrics.atlasWidth}px ${metrics.atlasHeight}px`;
+  element.style.backgroundImage = `url("${pet.spritesheetDataUrl}")`;
+  element.style.backgroundPosition = `-${column * metrics.frameWidth}px -${animation.row * metrics.frameHeight}px`;
 }
 
 function readAsDataUrl(file) {

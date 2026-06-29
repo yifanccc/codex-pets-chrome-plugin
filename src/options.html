@@ -25,6 +25,7 @@
           <button id="toggle-pet-enabled" class="deck-action" type="button">关闭桌宠</button>
           <div class="pet-stage">
             <div id="preview-sprite"></div>
+            <div id="state-preview-list" class="state-preview-list"></div>
           </div>
           <label class="field compact">
             桌宠大小 <span id="scale-label">100%</span>
@@ -33,6 +34,10 @@
           <label class="field compact">
             选择宠物
             <select id="pet-select"></select>
+          </label>
+          <label class="field compact">
+            选择模型
+            <select id="model-select"></select>
           </label>
         </section>
 
@@ -64,10 +69,6 @@
               <button id="model-submit" class="primary-action" type="submit">添加模型</button>
               <button id="cancel-model-edit" class="secondary" type="button" hidden>取消编辑</button>
             </form>
-            <label class="field compact select-line">
-              当前模型
-              <select id="model-select"></select>
-            </label>
             <div id="model-list" class="list"></div>
           </section>
 

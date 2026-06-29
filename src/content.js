@@ -59,15 +59,18 @@
         <button type="button" data-action="close-pet" title="关闭弹窗" class="codex-pet-close">×</button>
       </div>
       <div class="codex-pet-actions">
-        <button type="button" data-action="translate"><span>译</span><strong>翻译</strong><small>转成中文</small></button>
-        <button type="button" data-action="summary"><span>总</span><strong>总结</strong><small>页面要点</small></button>
-        <button type="button" data-action="summon"><span>C</span><strong>召唤 Codex</strong><small>复制链接</small></button>
-        <button type="button" data-action="remember"><span>记</span><strong>记忆</strong><small>生成摘要</small></button>
+        <button type="button" data-action="translate" data-tip="翻译：把选中文本或页面内容转成中文" aria-label="翻译"><span>译</span></button>
+        <button type="button" data-action="summary" data-tip="总结：提炼当前页面的主要内容" aria-label="总结"><span>总</span></button>
+        <button type="button" data-action="summon" data-tip="召唤 Codex：打开新对话并带入页面链接" aria-label="召唤 Codex"><span>C</span></button>
+        <button type="button" data-action="remember" data-tip="记忆：整理页面内容并保存到知识库" aria-label="记忆"><span>记</span></button>
       </div>
       <div class="codex-pet-result" role="status" hidden>
+        <button type="button" data-action="toggle-result" class="codex-pet-result-toggle" aria-expanded="true">
+          <span class="codex-pet-result-title">结果</span>
+          <span class="codex-pet-result-icon">⌃</span>
+        </button>
         <div class="codex-pet-result-content"></div>
       </div>
-      <button type="button" data-action="options" class="codex-pet-link">配置</button>
     </div>
     </div>
   `;
@@ -78,6 +81,8 @@
   const petName = shadow.querySelector(".codex-pet-name");
   const closeButton = shadow.querySelector(".codex-pet-close");
   const result = shadow.querySelector(".codex-pet-result");
+  const resultTitle = shadow.querySelector(".codex-pet-result-title");
+  const resultToggle = shadow.querySelector(".codex-pet-result-toggle");
   const resultContent = shadow.querySelector(".codex-pet-result-content");
 
   document.documentElement.appendChild(host);
@@ -178,8 +183,8 @@
       return;
     }
 
-    if (action === "options") {
-      await send({ type: "OPEN_OPTIONS" });
+    if (action === "toggle-result") {
+      setResultCollapsed(!result.classList.contains("is-collapsed"));
       return;
     }
 
@@ -217,11 +222,15 @@
         const prompt = `请阅读这个页面并继续处理：\n标题：${document.title}\n链接：${location.href}`;
         await writeClipboard(prompt);
         try {
-          await send({ type: "SUMMON_CODEX" });
+          await send({
+            type: "SUMMON_CODEX",
+            prompt,
+            originUrl: location.href
+          });
         } catch (error) {
-          window.location.href = "codex://";
+          window.location.href = buildCodexUrl(prompt, location.href);
         }
-        setResult("已复制页面提示词，并尝试唤起 Codex。");
+        setResult("已打开 Codex，并把当前页面链接带入输入框。");
       }
 
       if (action === "remember") {
@@ -334,6 +343,8 @@
 
   function setLoading(text) {
     result.hidden = false;
+    resultTitle.textContent = "处理中";
+    setResultCollapsed(false);
     resultContent.className = "codex-pet-result-content codex-pet-loading";
     resultContent.innerHTML = `
       <div class="codex-pet-loader" aria-hidden="true"><span></span><span></span><span></span></div>
@@ -346,6 +357,8 @@
 
   function setResult(text, options = {}) {
     result.hidden = !text;
+    resultTitle.textContent = options.title || "结果";
+    setResultCollapsed(false);
     resultContent.className = options.markdown
       ? "codex-pet-result-content codex-pet-markdown"
       : "codex-pet-result-content";
@@ -368,6 +381,11 @@
     if (panelOpen) {
       result.hidden = !resultContent.textContent && !resultContent.innerHTML;
     }
+  }
+
+  function setResultCollapsed(collapsed) {
+    result.classList.toggle("is-collapsed", collapsed);
+    resultToggle.setAttribute("aria-expanded", String(!collapsed));
   }
 
   function setHostVisible(visible) {
@@ -459,6 +477,14 @@
     input.select();
     document.execCommand("copy");
     input.remove();
+  }
+
+  function buildCodexUrl(prompt, originUrl) {
+    const params = new URLSearchParams({
+      prompt,
+      originUrl
+    });
+    return `codex://new?${params.toString()}`;
   }
 
   function markdownToSafeHtml(markdown) {

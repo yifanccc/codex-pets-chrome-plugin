@@ -36,9 +36,9 @@
   position: absolute;
   right: 0;
   bottom: 108px;
-  width: min(360px, calc(100vw - 28px));
+  width: min(250px, calc(100vw - 28px));
   max-height: min(520px, calc(100vh - 28px));
-  padding: 12px;
+  padding: 10px;
   border: 1px solid rgba(132, 220, 255, 0.22);
   border-radius: 8px;
   background:
@@ -61,7 +61,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .codex-pet-panel-header strong {
@@ -103,26 +103,24 @@
 }
 
 .codex-pet-actions {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  display: flex;
+  gap: 7px;
+  justify-content: space-between;
 }
 
 .codex-pet-actions button {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  min-height: 38px;
   display: grid;
-  grid-template-columns: 32px 1fr;
-  grid-template-rows: auto auto;
-  column-gap: 8px;
-  align-items: center;
-  text-align: left;
-  min-width: 0;
-  min-height: 58px;
+  place-items: center;
+  padding: 0;
 }
 
 .codex-pet-actions button > span {
-  grid-row: 1 / span 2;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   border-radius: 6px;
@@ -132,14 +130,32 @@
   font-weight: 800;
 }
 
-.codex-pet-actions button strong {
+.codex-pet-actions button::after {
+  content: attr(data-tip);
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  width: max-content;
+  max-width: 210px;
+  padding: 7px 9px;
+  border: 1px solid rgba(255, 212, 106, 0.36);
+  border-radius: 6px;
+  background: rgba(10, 16, 30, 0.96);
+  box-shadow: 0 10px 26px rgba(3, 8, 18, 0.28);
   color: #f8fbff;
-  font-size: 13px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 130ms ease, transform 130ms ease;
+  z-index: 2;
 }
 
-.codex-pet-actions button small {
-  color: #9aaabe;
-  font-size: 11px;
+.codex-pet-actions button:hover::after {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .codex-pet-result {
@@ -166,10 +182,54 @@
   overflow-wrap: anywhere;
 }
 
+.codex-pet-result-toggle {
+  width: 100%;
+  min-height: 30px !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -4px 0 8px;
+  padding: 4px 0 7px !important;
+  border-width: 0 0 1px !important;
+  border-color: rgba(23, 32, 51, 0.12) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #172033 !important;
+  transform: none !important;
+}
+
+.codex-pet-result-title {
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.codex-pet-result-icon {
+  color: #6f7b8f;
+  font-size: 12px;
+}
+
+.codex-pet-result.is-collapsed {
+  padding-bottom: 4px;
+}
+
+.codex-pet-result.is-collapsed .codex-pet-result-toggle {
+  margin-bottom: 0;
+  border-bottom-width: 0 !important;
+}
+
+.codex-pet-result.is-collapsed .codex-pet-result-icon {
+  transform: rotate(180deg);
+}
+
+.codex-pet-result.is-collapsed .codex-pet-result-content {
+  display: none;
+}
+
 .codex-pet-loading {
-  min-height: 126px;
+  min-height: 92px;
   display: grid;
-  grid-template-columns: 48px 1fr;
+  grid-template-columns: 42px 1fr;
   align-items: center;
   gap: 12px;
   white-space: normal;
@@ -189,8 +249,8 @@
 }
 
 .codex-pet-loader {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,11 +332,4 @@
   border-radius: 4px;
   background: #eef2ff;
   color: #2642a6;
-}
-
-.codex-pet-link {
-  width: 100%;
-  margin-top: 8px;
-  flex: 0 0 auto;
-  color: #d8e9ff !important;
 }
