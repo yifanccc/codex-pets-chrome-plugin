@@ -38,6 +38,8 @@ let editingModelId = "";
 
 const petJsonInput = document.querySelector("#pet-json");
 const petSheetInput = document.querySelector("#pet-sheet");
+const petJsonName = document.querySelector("#pet-json-name");
+const petSheetName = document.querySelector("#pet-sheet-name");
 const addPetButton = document.querySelector("#add-pet");
 const cancelPetEditButton = document.querySelector("#cancel-pet-edit");
 const petSelect = document.querySelector("#pet-select");
@@ -115,6 +117,9 @@ petScale.addEventListener("change", async () => {
   await save();
   setStatus(`桌宠大小已保存为 ${Math.round(settings.petScale * 100)}%。`);
 });
+
+petJsonInput.addEventListener("change", renderFileNames);
+petSheetInput.addEventListener("change", renderFileNames);
 
 statePreviewList.addEventListener("click", (event) => {
   const button = event.target.closest("[data-state]");
@@ -221,6 +226,7 @@ function render() {
   renderPetControls();
   renderModelControls();
   renderPreview();
+  renderFileNames();
 }
 
 function renderPetControls() {
@@ -363,6 +369,7 @@ function startPetEdit(id) {
   petSheetInput.value = "";
   addPetButton.textContent = "保存宠物";
   cancelPetEditButton.hidden = false;
+  renderFileNames();
   setStatus(`正在编辑宠物：${pet.displayName}，可重新选择文件后保存。`);
 }
 
@@ -372,6 +379,13 @@ function resetPetForm() {
   petSheetInput.value = "";
   addPetButton.textContent = "添加宠物";
   cancelPetEditButton.hidden = true;
+  renderFileNames();
+}
+
+function renderFileNames() {
+  const editingHint = editingPetId ? "未选择，保留原文件" : "未选择文件";
+  petJsonName.textContent = petJsonInput.files[0]?.name || editingHint;
+  petSheetName.textContent = petSheetInput.files[0]?.name || editingHint;
 }
 
 function startModelEdit(id) {

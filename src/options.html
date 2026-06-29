@@ -47,11 +47,33 @@
               <h2>导入宠物</h2>
               <span>Codex pet.json + spritesheet.webp</span>
             </div>
-            <div class="import-row">
-              <label>pet.json <input id="pet-json" type="file" accept="application/json,.json"></label>
-              <label>spritesheet.webp <input id="pet-sheet" type="file" accept="image/webp"></label>
-              <button id="add-pet" class="primary-action" type="button">添加宠物</button>
-              <button id="cancel-pet-edit" class="secondary" type="button" hidden>取消编辑</button>
+            <div class="import-grid">
+              <label class="file-card">
+                <input id="pet-json" class="file-input" type="file" accept="application/json,.json">
+                <span class="file-card-top">
+                  <span class="file-title">pet.json</span>
+                  <span class="file-badge">JSON</span>
+                </span>
+                <span class="file-card-main">
+                  <span class="file-pick">选择文件</span>
+                  <span id="pet-json-name" class="file-name">未选择文件</span>
+                </span>
+              </label>
+              <label class="file-card">
+                <input id="pet-sheet" class="file-input" type="file" accept="image/webp">
+                <span class="file-card-top">
+                  <span class="file-title">spritesheet.webp</span>
+                  <span class="file-badge">WEBP</span>
+                </span>
+                <span class="file-card-main">
+                  <span class="file-pick">选择文件</span>
+                  <span id="pet-sheet-name" class="file-name">未选择文件</span>
+                </span>
+              </label>
+              <div class="import-actions">
+                <button id="add-pet" class="primary-action" type="button">添加宠物</button>
+                <button id="cancel-pet-edit" class="secondary" type="button" hidden>取消编辑</button>
+              </div>
             </div>
             <div id="pet-list" class="list"></div>
           </section>
