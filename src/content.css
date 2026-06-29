@@ -174,7 +174,7 @@
   flex: 0 1 auto;
   max-height: 318px;
   overflow: hidden;
-  margin-top: 0;
+  margin-top: 3px;
   padding: 0;
   border-radius: 8px;
   border: 1px solid rgba(132, 220, 255, 0.14);
