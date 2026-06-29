@@ -18,3 +18,10 @@ test("content result area renders as a compact drawer when collapsed", () => {
   assert.match(contentCss, /\.codex-pet-result\.is-collapsed\s+\{[\s\S]*max-height:\s*38px/);
   assert.match(contentCss, /\.codex-pet-result-content\s+\{[\s\S]*overflow:\s*auto/);
 });
+
+test("collapsed result drawer is close to the action bar and fully clickable", () => {
+  assert.match(contentCss, /\.codex-pet-result\s+\{[^}]*margin-top:\s*4px/);
+  assert.match(contentJs, /result\.addEventListener\("click"/);
+  assert.match(contentJs, /result\.classList\.contains\("is-collapsed"\)/);
+  assert.match(contentJs, /setResultCollapsed\(false\)/);
+});

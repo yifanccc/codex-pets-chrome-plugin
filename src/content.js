@@ -212,6 +212,12 @@
     }
   });
 
+  result.addEventListener("click", (event) => {
+    if (!result.classList.contains("is-collapsed")) return;
+    event.stopPropagation();
+    setResultCollapsed(false);
+  });
+
   root.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) return;

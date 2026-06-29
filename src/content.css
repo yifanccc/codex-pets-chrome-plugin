@@ -174,7 +174,7 @@
   flex: 0 1 auto;
   max-height: 318px;
   overflow: hidden;
-  margin-top: 10px;
+  margin-top: 4px;
   padding: 0;
   border-radius: 8px;
   border: 1px solid rgba(132, 220, 255, 0.14);
@@ -252,6 +252,7 @@
   border-color: rgba(132, 220, 255, 0.22);
   background: rgba(12, 18, 34, 0.78);
   box-shadow: 0 12px 26px rgba(3, 8, 18, 0.22);
+  cursor: pointer;
 }
 
 .codex-pet-result.is-collapsed .codex-pet-result-toggle {
