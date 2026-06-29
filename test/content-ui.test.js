@@ -26,9 +26,23 @@ test("collapsed result drawer is close to the action bar and fully clickable", (
   assert.match(contentJs, /setResultCollapsed\(false\)/);
 });
 
-test("result drawer header stays at the top and exposes an expand affordance", () => {
+test("result drawer header uses only the arrow as the collapse affordance", () => {
   assert.doesNotMatch(contentCss, /\.codex-pet-result\s+\{[^}]*white-space:\s*pre-wrap/);
   assert.match(contentCss, /\.codex-pet-result-content\s+\{[^}]*white-space:\s*pre-wrap/);
-  assert.match(contentJs, /class="codex-pet-result-action">折叠<\/span>/);
-  assert.match(contentJs, /resultAction\.textContent = collapsed \? "展开" : "折叠";/);
+  assert.doesNotMatch(contentJs, /codex-pet-result-action/);
+  assert.doesNotMatch(contentJs, /折叠<\/span>|展开<\/span>/);
+  assert.match(contentJs, /title="切换结果显示"/);
+});
+
+test("pet position is clamped again when the viewport changes", () => {
+  assert.match(contentJs, /window\.addEventListener\("resize", keepPetInViewport\);/);
+  assert.match(contentJs, /function keepPetInViewport\(\)/);
+  assert.match(contentJs, /const position = clampViewportPosition\(x, y\);/);
+  assert.match(contentJs, /moveTo\(position\.x, position\.y\);/);
+});
+
+test("viewport clamping never uses negative maximum coordinates", () => {
+  assert.match(contentJs, /function clampViewportPosition\(nextX, nextY\)/);
+  assert.match(contentJs, /Math\.max\(8, window\.innerWidth - frameWidth - 8\)/);
+  assert.match(contentJs, /Math\.max\(8, window\.innerHeight - frameHeight - 8\)/);
 });

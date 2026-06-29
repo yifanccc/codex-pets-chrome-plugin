@@ -1,5 +1,5 @@
 {
-  "name": "codex-pets-on-chrome",
+  "name": "codex-pets-chrome-plugin",
   "version": "0.1.0",
   "private": true,
   "type": "module",

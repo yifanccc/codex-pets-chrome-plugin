@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "codex-pets-on-chrome",
+  "name": "codex-pets-chrome-plugin",
   "description": "A Codex pet companion for browsing, translation, summaries, Codex handoff, and local knowledge notes.",
   "version": "0.1.0",
   "permissions": ["storage", "unlimitedStorage", "tabs", "downloads", "clipboardWrite"],

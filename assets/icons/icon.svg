@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Codex pet icon">
-  <rect x="10" y="10" width="108" height="108" rx="28" fill="#101827"/>
-  <rect x="30" y="38" width="68" height="60" rx="23" fill="#2dd4bf"/>
-  <circle cx="51" cy="66" r="6" fill="#0b1220"/>
-  <circle cx="77" cy="66" r="6" fill="#0b1220"/>
-  <path d="M57 80c5 4 10 4 15 0" fill="none" stroke="#0b1220" stroke-width="5" stroke-linecap="round"/>
-  <circle cx="91" cy="36" r="6" fill="#f6c453"/>
-</svg>

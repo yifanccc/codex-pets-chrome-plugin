@@ -247,17 +247,6 @@
   transition: transform 140ms ease;
 }
 
-.codex-pet-result-action {
-  flex: 0 0 auto;
-  padding: 2px 6px;
-  border: 1px solid rgba(255, 212, 106, 0.4);
-  border-radius: 999px;
-  color: #ffd46a;
-  font-size: 11px;
-  font-weight: 850;
-  line-height: 1.2;
-}
-
 .codex-pet-result.is-collapsed {
   max-height: 38px;
   border-color: rgba(132, 220, 255, 0.22);
@@ -273,10 +262,6 @@
   background:
     linear-gradient(90deg, rgba(132, 220, 255, 0.13), rgba(255, 212, 106, 0.08)),
     rgba(255, 255, 255, 0.055) !important;
-}
-
-.codex-pet-result.is-collapsed .codex-pet-result-action {
-  background: rgba(255, 212, 106, 0.14);
 }
 
 .codex-pet-result.is-collapsed .codex-pet-result-icon {

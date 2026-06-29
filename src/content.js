@@ -75,10 +75,9 @@
         </div>
       </div>
       <div class="codex-pet-result" role="status" hidden>
-        <button type="button" data-action="toggle-result" class="codex-pet-result-toggle" aria-expanded="true" title="折叠结果">
+        <button type="button" data-action="toggle-result" class="codex-pet-result-toggle" aria-expanded="true" title="切换结果显示">
           <span class="codex-pet-result-title">结果</span>
-          <span class="codex-pet-result-summary">点击折叠</span>
-          <span class="codex-pet-result-action">折叠</span>
+          <span class="codex-pet-result-summary">点击箭头收起</span>
           <span class="codex-pet-result-icon">⌃</span>
         </button>
         <div class="codex-pet-result-content"></div>
@@ -95,7 +94,6 @@
   const result = shadow.querySelector(".codex-pet-result");
   const resultTitle = shadow.querySelector(".codex-pet-result-title");
   const resultSummary = shadow.querySelector(".codex-pet-result-summary");
-  const resultAction = shadow.querySelector(".codex-pet-result-action");
   const resultToggle = shadow.querySelector(".codex-pet-result-toggle");
   const resultContent = shadow.querySelector(".codex-pet-result-content");
   const actionHint = shadow.querySelector(".codex-pet-action-hint");
@@ -107,6 +105,7 @@
   scheduleNextFrame();
 
   window.addEventListener("load", () => setState("idle"), { once: true });
+  window.addEventListener("resize", keepPetInViewport);
   window.addEventListener("error", () => setState("failed"), true);
   window.addEventListener("unhandledrejection", () => setState("failed"));
 
@@ -254,7 +253,7 @@
     applyVisibility();
     applyPetAppearance();
     renderPetName();
-    moveTo(clamp(x, 8, window.innerWidth - frameWidth - 8), clamp(y, 8, window.innerHeight - frameHeight - 8));
+    keepPetInViewport();
     renderSprite();
     scheduleNextFrame();
   }
@@ -443,8 +442,21 @@
   function setResultCollapsed(collapsed) {
     result.classList.toggle("is-collapsed", collapsed);
     resultToggle.setAttribute("aria-expanded", String(!collapsed));
-    resultAction.textContent = collapsed ? "展开" : "折叠";
-    resultToggle.title = collapsed ? "展开结果" : "折叠结果";
+    resultToggle.title = "切换结果显示";
+  }
+
+  function keepPetInViewport() {
+    const position = clampViewportPosition(x, y);
+    moveTo(position.x, position.y);
+  }
+
+  function clampViewportPosition(nextX, nextY) {
+    const maxX = Math.max(8, window.innerWidth - frameWidth - 8);
+    const maxY = Math.max(8, window.innerHeight - frameHeight - 8);
+    return {
+      x: clamp(nextX, 8, maxX),
+      y: clamp(nextY, 8, maxY)
+    };
   }
 
   function summarizeResultLabel(text) {
