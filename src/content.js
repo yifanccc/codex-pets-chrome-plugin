@@ -12,6 +12,8 @@
     running: { row: 7, durations: [120, 120, 120, 120, 120, 220] },
     review: { row: 8, durations: [150, 150, 150, 150, 150, 280] }
   };
+  const ACTION_HINT_BASE_DELAY_MS = 360;
+  const ACTION_HINT_DELAY_MS = ACTION_HINT_BASE_DELAY_MS / 2;
 
   let settings = {};
   let currentPet = null;
@@ -31,6 +33,8 @@
   let dragState = "";
   let panelOpen = false;
   let animationTimer = 0;
+  let actionHintTimer = 0;
+  let actionHintTarget = null;
 
   const host = document.createElement("div");
   host.id = "codex-pet-host";
@@ -61,15 +65,19 @@
           <button type="button" data-action="close-pet" title="关闭弹窗" aria-label="关闭弹窗" class="codex-pet-icon-button codex-pet-close">×</button>
         </div>
       </div>
-      <div class="codex-pet-actions">
-        <button type="button" data-action="translate" title="把选中文本或页面内容转成中文" aria-label="翻译"><span>翻译</span></button>
-        <button type="button" data-action="summary" title="提炼当前页面的主要内容" aria-label="总结"><span>总结</span></button>
-        <button type="button" data-action="summon" title="打开 Codex 并带入页面链接" aria-label="召唤 Codex"><span>Codex</span></button>
-        <button type="button" data-action="remember" title="整理页面内容并保存到知识库" aria-label="记忆"><span>记忆</span></button>
+      <div class="codex-pet-actions-wrap">
+        <div class="codex-pet-action-hint" role="tooltip" hidden></div>
+        <div class="codex-pet-actions">
+          <button type="button" data-action="translate" data-hint="把选中文本或页面内容转成中文" aria-label="翻译"><span>翻译</span></button>
+          <button type="button" data-action="summary" data-hint="提炼当前页面的主要内容" aria-label="总结"><span>总结</span></button>
+          <button type="button" data-action="summon" data-hint="打开 Codex 并带入页面链接" aria-label="召唤 Codex"><span>Codex</span></button>
+          <button type="button" data-action="remember" data-hint="整理页面内容并保存到知识库" aria-label="记忆"><span>记忆</span></button>
+        </div>
       </div>
       <div class="codex-pet-result" role="status" hidden>
-        <button type="button" data-action="toggle-result" class="codex-pet-result-toggle" aria-expanded="true">
+        <button type="button" data-action="toggle-result" class="codex-pet-result-toggle" aria-expanded="true" title="折叠结果">
           <span class="codex-pet-result-title">结果</span>
+          <span class="codex-pet-result-summary">点击折叠</span>
           <span class="codex-pet-result-icon">⌃</span>
         </button>
         <div class="codex-pet-result-content"></div>
@@ -85,8 +93,10 @@
   const closeButton = shadow.querySelector(".codex-pet-close");
   const result = shadow.querySelector(".codex-pet-result");
   const resultTitle = shadow.querySelector(".codex-pet-result-title");
+  const resultSummary = shadow.querySelector(".codex-pet-result-summary");
   const resultToggle = shadow.querySelector(".codex-pet-result-toggle");
   const resultContent = shadow.querySelector(".codex-pet-result-content");
+  const actionHint = shadow.querySelector(".codex-pet-action-hint");
 
   document.documentElement.appendChild(host);
   setPanelOpen(false);
@@ -176,10 +186,37 @@
     closePanel();
   });
 
+  root.addEventListener("pointerover", (event) => {
+    const button = event.target.closest(".codex-pet-actions button[data-hint]");
+    if (!button || button.contains(event.relatedTarget)) return;
+    scheduleActionHint(button);
+  });
+
+  root.addEventListener("pointerout", (event) => {
+    const button = event.target.closest(".codex-pet-actions button[data-hint]");
+    if (!button || button.contains(event.relatedTarget)) return;
+    hideActionHint();
+  });
+
+  root.addEventListener("focusin", (event) => {
+    const button = event.target.closest(".codex-pet-actions button[data-hint]");
+    if (button) {
+      scheduleActionHint(button);
+    }
+  });
+
+  root.addEventListener("focusout", (event) => {
+    const button = event.target.closest(".codex-pet-actions button[data-hint]");
+    if (button) {
+      hideActionHint();
+    }
+  });
+
   root.addEventListener("click", async (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) return;
     const action = button.dataset.action;
+    hideActionHint();
 
     if (action === "close-pet") {
       closePanel();
@@ -353,6 +390,7 @@
   function setLoading(text) {
     result.hidden = false;
     resultTitle.textContent = "处理中";
+    resultSummary.textContent = "正在阅读页面";
     setResultCollapsed(false);
     resultContent.className = "codex-pet-result-content codex-pet-loading";
     resultContent.innerHTML = `
@@ -367,6 +405,7 @@
   function setResult(text, options = {}) {
     result.hidden = !text;
     resultTitle.textContent = options.title || "结果";
+    resultSummary.textContent = summarizeResultLabel(text);
     setResultCollapsed(false);
     resultContent.className = options.markdown
       ? "codex-pet-result-content codex-pet-markdown"
@@ -387,6 +426,7 @@
     panelOpen = Boolean(open);
     panel.hidden = !panelOpen;
     panel.style.display = panelOpen ? "flex" : "none";
+    hideActionHint();
     if (panelOpen) {
       result.hidden = !resultContent.textContent && !resultContent.innerHTML;
     }
@@ -395,6 +435,35 @@
   function setResultCollapsed(collapsed) {
     result.classList.toggle("is-collapsed", collapsed);
     resultToggle.setAttribute("aria-expanded", String(!collapsed));
+    resultToggle.title = collapsed ? "展开结果" : "折叠结果";
+  }
+
+  function summarizeResultLabel(text) {
+    const normalized = String(text || "")
+      .replace(/[#*_`>\-[\]]+/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+    return normalized ? normalized.slice(0, 28) : "点击折叠";
+  }
+
+  function scheduleActionHint(button) {
+    window.clearTimeout(actionHintTimer);
+    actionHintTarget = button;
+    actionHint.classList.remove("is-visible");
+    actionHint.hidden = true;
+    actionHintTimer = window.setTimeout(() => {
+      if (actionHintTarget !== button) return;
+      actionHint.textContent = button.dataset.hint || "";
+      actionHint.hidden = false;
+      window.requestAnimationFrame(() => actionHint.classList.add("is-visible"));
+    }, ACTION_HINT_DELAY_MS);
+  }
+
+  function hideActionHint() {
+    window.clearTimeout(actionHintTimer);
+    actionHintTarget = null;
+    actionHint.classList.remove("is-visible");
+    actionHint.hidden = true;
   }
 
   function setHostVisible(visible) {
