@@ -174,7 +174,7 @@
   flex: 0 1 auto;
   max-height: 318px;
   overflow: hidden;
-  margin-top: 4px;
+  margin-top: 0;
   padding: 0;
   border-radius: 8px;
   border: 1px solid rgba(132, 220, 255, 0.14);
@@ -182,7 +182,7 @@
   color: #172033;
   font-size: 13px;
   line-height: 1.65;
-  white-space: pre-wrap;
+  white-space: normal;
   box-shadow: 0 12px 28px rgba(3, 8, 18, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.8);
   transition: max-height 160ms ease, background 160ms ease, border-color 160ms ease;
 }
@@ -196,6 +196,7 @@
   padding: 12px;
   overflow: auto;
   overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .codex-pet-result-toggle {
@@ -241,17 +242,27 @@
 
 .codex-pet-result-icon {
   flex: 0 0 auto;
-  margin-left: auto;
   color: #ffd46a;
   font-size: 12px;
   transition: transform 140ms ease;
+}
+
+.codex-pet-result-action {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  border: 1px solid rgba(255, 212, 106, 0.4);
+  border-radius: 999px;
+  color: #ffd46a;
+  font-size: 11px;
+  font-weight: 850;
+  line-height: 1.2;
 }
 
 .codex-pet-result.is-collapsed {
   max-height: 38px;
   border-color: rgba(132, 220, 255, 0.22);
   background: rgba(12, 18, 34, 0.78);
-  box-shadow: 0 12px 26px rgba(3, 8, 18, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(255, 212, 106, 0.08), 0 12px 26px rgba(3, 8, 18, 0.22);
   cursor: pointer;
 }
 
@@ -262,6 +273,10 @@
   background:
     linear-gradient(90deg, rgba(132, 220, 255, 0.13), rgba(255, 212, 106, 0.08)),
     rgba(255, 255, 255, 0.055) !important;
+}
+
+.codex-pet-result.is-collapsed .codex-pet-result-action {
+  background: rgba(255, 212, 106, 0.14);
 }
 
 .codex-pet-result.is-collapsed .codex-pet-result-icon {

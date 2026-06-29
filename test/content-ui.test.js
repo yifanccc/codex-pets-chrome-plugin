@@ -20,8 +20,15 @@ test("content result area renders as a compact drawer when collapsed", () => {
 });
 
 test("collapsed result drawer is close to the action bar and fully clickable", () => {
-  assert.match(contentCss, /\.codex-pet-result\s+\{[^}]*margin-top:\s*4px/);
+  assert.match(contentCss, /\.codex-pet-result\s+\{[^}]*margin-top:\s*0/);
   assert.match(contentJs, /result\.addEventListener\("click"/);
   assert.match(contentJs, /result\.classList\.contains\("is-collapsed"\)/);
   assert.match(contentJs, /setResultCollapsed\(false\)/);
+});
+
+test("result drawer header stays at the top and exposes an expand affordance", () => {
+  assert.doesNotMatch(contentCss, /\.codex-pet-result\s+\{[^}]*white-space:\s*pre-wrap/);
+  assert.match(contentCss, /\.codex-pet-result-content\s+\{[^}]*white-space:\s*pre-wrap/);
+  assert.match(contentJs, /class="codex-pet-result-action">折叠<\/span>/);
+  assert.match(contentJs, /resultAction\.textContent = collapsed \? "展开" : "折叠";/);
 });

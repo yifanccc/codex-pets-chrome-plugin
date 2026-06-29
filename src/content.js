@@ -78,6 +78,7 @@
         <button type="button" data-action="toggle-result" class="codex-pet-result-toggle" aria-expanded="true" title="折叠结果">
           <span class="codex-pet-result-title">结果</span>
           <span class="codex-pet-result-summary">点击折叠</span>
+          <span class="codex-pet-result-action">折叠</span>
           <span class="codex-pet-result-icon">⌃</span>
         </button>
         <div class="codex-pet-result-content"></div>
@@ -94,6 +95,7 @@
   const result = shadow.querySelector(".codex-pet-result");
   const resultTitle = shadow.querySelector(".codex-pet-result-title");
   const resultSummary = shadow.querySelector(".codex-pet-result-summary");
+  const resultAction = shadow.querySelector(".codex-pet-result-action");
   const resultToggle = shadow.querySelector(".codex-pet-result-toggle");
   const resultContent = shadow.querySelector(".codex-pet-result-content");
   const actionHint = shadow.querySelector(".codex-pet-action-hint");
@@ -441,6 +443,7 @@
   function setResultCollapsed(collapsed) {
     result.classList.toggle("is-collapsed", collapsed);
     resultToggle.setAttribute("aria-expanded", String(!collapsed));
+    resultAction.textContent = collapsed ? "展开" : "折叠";
     resultToggle.title = collapsed ? "展开结果" : "折叠结果";
   }
 
